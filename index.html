@@ -3,6 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#EDF1EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C2427" media="(prefers-color-scheme: dark)">
+<meta name="description" content="แปลงค่าพิกัดระหว่างพื้นหลักฐาน Indian 1975 กับ WGS84 โซน 47N/48N รองรับ UTM, ละติจูด/ลองจิจูด และ MGRS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="แปลงพิกัด UTM">
+<meta name="mobile-web-app-capable" content="yes">
 <title>แปลงพิกัด UTM Indian 1975 ⇄ WGS84 (โซน 47/48)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
@@ -88,6 +99,14 @@ summary{cursor:pointer;color:var(--water)}
 .plabel{background:rgba(20,26,28,.78);color:#fff;border:0;box-shadow:none;font-size:.78rem;padding:1px 6px}
 .plabel:before{display:none}
 .chk.inline{display:inline-flex;margin:0 14px 0 0}
+.install{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;margin-bottom:16px}
+.install h2{margin:0 0 6px}
+.install ol{margin:6px 0 0;padding-left:1.3em;font-size:.9rem;color:var(--muted)}
+.install li{margin-bottom:3px}
+.install details summary{font-size:.9rem}
+.bar{position:fixed;left:12px;right:12px;bottom:12px;z-index:900;background:var(--ink);color:var(--paper);border-radius:6px;padding:10px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;box-shadow:0 4px 16px rgba(0,0,0,.25);font-size:.92rem}
+.bar button{border:0;border-radius:4px;padding:6px 12px;font:inherit;font-weight:600;cursor:pointer;background:var(--paper);color:var(--ink)}
+.bar .x{background:transparent;color:var(--paper);font-weight:400;padding:6px 4px}
 .credit{margin-top:14px;padding-top:8px;border-top:1px solid var(--rule);font-size:.75rem;color:var(--muted);text-align:center}
 footer{font-size:.82rem;color:var(--muted);margin-top:24px;max-width:66ch}
 @media (prefers-reduced-motion:no-preference){.readout{transition:opacity .2s}}
@@ -243,6 +262,13 @@ BM3 188420.125 1393875.600</textarea>
   <div id="mapWarn" class="warn hidden"></div>
   <div id="map"></div>
   <p class="note" id="mapNote">กดแปลงพิกัดเพื่อแสดงตำแหน่ง</p>
+</section>
+
+<section class="install" id="installBox" aria-label="ติดตั้งแอป">
+  <h2 id="instTitle">ติดตั้งเป็นแอปในเครื่อง</h2>
+  <p class="note" id="instLede" style="margin-top:0">ติดตั้งแล้วเปิดใช้ได้เหมือนแอปทั่วไป มีไอคอนของตัวเอง เปิดเต็มหน้าจอโดยไม่มีแถบที่อยู่เว็บ และการแปลงพิกัดยังใช้ได้แม้ไม่มีอินเทอร์เน็ต (ส่วนภาพแผนที่ต้องออนไลน์)</p>
+  <div class="row" id="instRow"><button class="btn" id="instBtn" style="display:none">ติดตั้งแอป</button></div>
+  <div id="instHow"></div>
 </section>
 
 <footer>
@@ -1110,6 +1136,78 @@ $('csvFile').onchange=async e=>{
   $('csvMap').innerHTML='';
   CSV={lines,delim,enc,fname:f.name,hasHead,map:null};csvRender();
 };
+
+// ---- ติดตั้งเป็นแอป (PWA) และใช้งานออฟไลน์ ----
+(()=>{
+  const ua=navigator.userAgent||'';
+  const isIOS=/iPad|iPhone|iPod/.test(ua)||(/Mac/.test(ua)&&navigator.maxTouchPoints>1);
+  const isAndroid=/Android/.test(ua);
+  const mm=q=>{try{return window.matchMedia&&window.matchMedia(q).matches;}catch(e){return false;}};
+  const standalone=mm('(display-mode: standalone)')||mm('(display-mode: window-controls-overlay)')||mm('(display-mode: minimal-ui)')||navigator.standalone===true;
+  const fileOpen=!window.isSecureContext||location.protocol==='file:';
+  const how=(title,steps)=>`<details><summary>${title}</summary><ol>${steps.map(x=>`<li>${x}</li>`).join('')}</ol></details>`;
+  let deferred=null;
+
+  function render(state){
+    const box=$('instHow');
+    if(state==='installed'){
+      $('instTitle').textContent='ติดตั้งแล้ว';
+      $('instLede').textContent='กำลังเปิดใช้งานแบบแอปอยู่ การแปลงพิกัดใช้ได้แม้ไม่มีอินเทอร์เน็ต';
+      box.innerHTML='';$('instBtn').style.display='none';return;
+    }
+    if(fileOpen){
+      $('instLede').innerHTML='ไฟล์นี้เปิดจากเครื่องโดยตรง จึงติดตั้งเป็นแอปไม่ได้ ให้เปิดหน้านี้ผ่านลิงก์ <b>https</b> เช่น GitHub Pages หรือเว็บเซิร์ฟเวอร์ของสำนักงาน แล้วจึงติดตั้ง';
+      box.innerHTML='';return;
+    }
+    box.innerHTML=
+      (isIOS?how('วิธีติดตั้งบน iPhone / iPad',['เปิดหน้านี้ด้วยเบราว์เซอร์ Safari','แตะปุ่มแชร์ (รูปสี่เหลี่ยมมีลูกศรขึ้น) ที่แถบล่าง','เลื่อนหาและแตะ “เพิ่มไปยังหน้าจอโฮม”','แตะ “เพิ่ม” มุมขวาบน']):'')+
+      (isAndroid?how('วิธีติดตั้งบน Android',['เปิดหน้านี้ด้วย Chrome','แตะเมนู ⋮ มุมขวาบน','แตะ “ติดตั้งแอป” หรือ “เพิ่มลงในหน้าจอหลัก”','แตะ “ติดตั้ง”']):'')+
+      ((!isIOS&&!isAndroid)?how('วิธีติดตั้งบน Windows / macOS',['เปิดหน้านี้ด้วย Chrome, Edge หรือเบราว์เซอร์ที่รองรับ','กดไอคอนติดตั้ง (รูปจอมีลูกศรลง) ท้ายแถบที่อยู่เว็บ','หรือเปิดเมนู ⋮ แล้วเลือก “ติดตั้ง…” / Apps → Install this site as an app','กด “ติดตั้ง” จะได้ไอคอนบนเดสก์ท็อปและในเมนู Start']):'');
+  }
+
+  if(standalone)render('installed'); else render('web');
+
+  addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();deferred=e;
+    $('instBtn').style.display='';$('instBtn').textContent='ติดตั้งแอป';
+  });
+  $('instBtn').onclick=async()=>{
+    if(!deferred)return;
+    $('instBtn').disabled=true;
+    deferred.prompt();
+    const {outcome}=await deferred.userChoice.catch(()=>({outcome:'dismissed'}));
+    deferred=null;$('instBtn').disabled=false;
+    if(outcome==='accepted')$('instBtn').style.display='none';
+  };
+  addEventListener('appinstalled',()=>{deferred=null;render('installed');});
+
+  // service worker: ใช้งานออฟไลน์ และแจ้งเมื่อมีเวอร์ชันใหม่
+  if('serviceWorker' in navigator && !fileOpen){
+    addEventListener('load',async()=>{
+      try{
+        const reg=await navigator.serviceWorker.register('sw.js');
+        const offer=w=>{
+          if(!w)return;
+          w.addEventListener('statechange',()=>{
+            if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdate(w);
+          });
+        };
+        if(reg.waiting&&navigator.serviceWorker.controller)showUpdate(reg.waiting);
+        reg.addEventListener('updatefound',()=>offer(reg.installing));
+      }catch(e){}
+    });
+    let reloading=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!reloading){reloading=true;location.reload();}});
+  }
+  function showUpdate(worker){
+    if(document.getElementById('updBar'))return;
+    const b=document.createElement('div');b.className='bar';b.id='updBar';
+    b.innerHTML='<span>มีเวอร์ชันใหม่ของแอป</span><span><button id="updGo">อัปเดต</button><button class="x" id="updNo">ภายหลัง</button></span>';
+    document.body.appendChild(b);
+    b.querySelector('#updGo').onclick=()=>{b.remove();worker.postMessage('skipWaiting');};
+    b.querySelector('#updNo').onclick=()=>b.remove();
+  }
+})();
 onPset();renderProfiles();
 (()=>{const a=store.ok&&store.auto();if(a){const p=store.get().find(x=>x.name===a);$('pfAuto').checked=true;if(p)applyProfile(p);}})();
 $('goOne').click();
