@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แปลงพิกัด UTM Indian 1975 ⇄ WGS84 (โซน 47/48)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Sarabun:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF1EF; --sheet:#FFFFFF; --ink:#1E292D; --muted:#56646A; --rule:#C9D3D0;
+  --contour:#8A5A2B; --water:#1B6A9C; --water-soft:#DCEAF3; --warn:#A8352A; --warn-soft:#F6E3E0; --ok:#2E6B3F;
+  --field:#F8FAF9;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#141A1C; --sheet:#1C2427; --ink:#E4ECEA; --muted:#98A7AB; --rule:#33403F;
+  --contour:#D29A62; --water:#6FB3E0; --water-soft:#1E3441; --warn:#F08A7C; --warn-soft:#3A2220; --ok:#7CC48F; --field:#161E20;
+}}
+:root[data-theme="dark"]{
+  --paper:#141A1C; --sheet:#1C2427; --ink:#E4ECEA; --muted:#98A7AB; --rule:#33403F;
+  --contour:#D29A62; --water:#6FB3E0; --water-soft:#1E3441; --warn:#F08A7C; --warn-soft:#3A2220; --ok:#7CC48F; --field:#161E20;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 "IBM Plex Sans Thai","Sarabun","Noto Sans Thai",system-ui,sans-serif;}
+.wrap{max-width:780px;margin:0 auto;padding:20px 16px 60px}
+h1{font-family:"Sarabun","IBM Plex Sans Thai",sans-serif;font-weight:700;font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.2;margin:8px 0 4px}
+h1 .dir{color:var(--contour)}
+.lede{color:var(--muted);margin:0 0 18px;max-width:62ch}
+h2{font-family:"Sarabun",sans-serif;font-size:1.2rem;margin:0 0 10px}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;font-variant-numeric:tabular-nums}
+textarea{min-height:140px;resize:vertical;font-size:.92rem;line-height:1.5;white-space:pre;overflow-x:auto}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--water);outline-offset:1px}
+.swap{display:flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.swap button{flex:1;border:0;background:var(--field);color:var(--ink);padding:10px 8px;font:inherit;font-weight:500;cursor:pointer}
+.swap button[aria-pressed="true"]{background:var(--water);color:#fff}
+.tabs{display:flex;gap:4px;margin:18px 0 0;overflow-x:auto}
+.tabs button{border:1px solid var(--rule);border-bottom:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:6px 6px 0 0;font:inherit;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--sheet);color:var(--ink);font-weight:600}
+.tabs + .sheet{border-top-left-radius:0}
+.btn{border:0;background:var(--contour);color:#fff;padding:10px 18px;border-radius:4px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--water);border:1px solid var(--water)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.note{font-size:.88rem;color:var(--muted);margin:8px 0 0}
+.warn{background:var(--warn-soft);color:var(--warn);border-left:3px solid var(--warn);padding:8px 12px;border-radius:0 4px 4px 0;font-size:.9rem;margin-top:10px}
+.hidden{display:none}
+/* result readout — the one bold element */
+.readout{margin-top:16px;border-top:2px solid var(--ink);padding-top:12px}
+.coord{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;align-items:baseline}
+.coord .k{color:var(--muted);font-size:.9rem}
+.coord .v{font-size:clamp(1.35rem,5vw,1.9rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.shift{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;color:var(--contour);font-variant-numeric:tabular-nums}
+.geo{font-size:.88rem;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;margin-top:12px}
+.gtab th,.gtab td{text-align:left;white-space:normal}
+.gtab td{font-size:.95rem}
+.gtab .mg{font-weight:600;letter-spacing:.02em;white-space:nowrap}
+table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--rule);padding:6px 8px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+.bad{color:var(--warn);font-weight:600}
+.okc{color:var(--ok)}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--water)}
+.custom .grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--ink);font-size:.92rem}
+.chk input{width:auto}
+.mini{border:1px solid var(--rule);background:transparent;color:var(--water);border-radius:4px;padding:3px 10px;font:inherit;font-size:.85rem;cursor:pointer;margin-left:4px}
+.mini.del{color:var(--warn)}
+#map{height:420px;border:1px solid var(--rule);border-radius:4px;margin-top:10px;background:var(--field)}
+@media (max-width:600px){#map{height:340px}}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.88rem;margin-top:8px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4);vertical-align:-1px;margin-right:6px}
+.leaflet-container{font:inherit}
+.leaflet-control-attribution{font-size:10px;line-height:1.35;max-width:100%}
+.gps{width:18px;height:18px;border-radius:50%;background:#1FB85A;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.gps.pulse{animation:none}
+@media (prefers-reduced-motion:no-preference){.gps.pulse{animation:gp 1.8s ease-out infinite}}
+@keyframes gp{0%{box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 0 0 rgba(31,184,90,.6)}100%{box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 0 16px rgba(31,184,90,0)}}
+.gpsbox{margin-top:10px;border-left:3px solid #1FB85A;padding:6px 12px;background:var(--field);border-radius:0 4px 4px 0;font-size:.9rem;font-variant-numeric:tabular-nums}
+.gpsbox b{font-weight:600}
+.hillshade{mix-blend-mode:multiply;opacity:.45}
+.leaflet-control-layers-list{font-size:.85rem;line-height:1.5}
+.pmark{width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.7)}
+.plabel{background:rgba(20,26,28,.78);color:#fff;border:0;box-shadow:none;font-size:.78rem;padding:1px 6px}
+.plabel:before{display:none}
+.chk.inline{display:inline-flex;margin:0 14px 0 0}
+.credit{margin-top:14px;padding-top:8px;border-top:1px solid var(--rule);font-size:.75rem;color:var(--muted);text-align:center}
+footer{font-size:.82rem;color:var(--muted);margin-top:24px;max-width:66ch}
+@media (prefers-reduced-motion:no-preference){.readout{transition:opacity .2s}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+<h1>แปลงพิกัด UTM <span class="dir" id="dirTitle">Indian 1975 → WGS84</span></h1>
+<p class="lede">รองรับโซน 47 และ 48 ทั้งสองทิศทาง แปลงข้ามโซนได้ ใช้สูตร Transverse Mercator อนุกรม Krüger และทรงรี Everest 1830 (1937 Adjustment) ตรวจเทียบกับไลบรารี PROJ แล้ว ต่างกันไม่เกินระดับนาโนเมตร</p>
+
+<section class="sheet" aria-label="การตั้งค่า">
+  <div class="swap" role="group" aria-label="ทิศทางการแปลง">
+    <button id="dFwd" aria-pressed="true">Indian 1975 → WGS84</button>
+    <button id="dRev" aria-pressed="false">WGS84 → Indian 1975</button>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div style="grid-column:1/-1"><label for="infmt">รูปแบบค่าที่ป้อน</label>
+      <select id="infmt"><option value="utm">พิกัดฉาก UTM (E, N)</option><option value="geo">ละติจูด / ลองจิจูด</option><option value="mgrs">MGRS</option></select></div>
+    <div><label for="zin">โซนของค่าที่ป้อน</label>
+      <select id="zin"><option value="47">47N</option><option value="48" selected>48N</option></select></div>
+    <div><label for="zout">โซนของผลลัพธ์</label>
+      <select id="zout"><option value="same">เหมือนค่าที่ป้อน</option><option value="auto">ตามลองจิจูดจริง</option><option value="47">บังคับ 47N</option><option value="48">บังคับ 48N</option></select></div>
+    <div style="grid-column:1/-1"><label for="pset">ค่าพารามิเตอร์การแปลงพื้นหลักฐาน</label>
+      <select id="pset"></select></div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div><label for="llf">รูปแบบละติจูด/ลองจิจูด</label>
+      <select id="llf"><option value="dms">องศา ลิปดา ฟิลิปดา</option><option value="ddm">องศา ลิปดาทศนิยม</option><option value="dd">องศาทศนิยม</option></select></div>
+    <div><label for="mgp">ความละเอียด MGRS</label>
+      <select id="mgp"><option value="5">1 ม. (10 หลัก)</option><option value="4">10 ม. (8 หลัก)</option><option value="3">100 ม. (6 หลัก)</option></select></div>
+  </div>
+  <div id="psetWarn" class="warn hidden"></div>
+  <div id="customBox" class="custom hidden">
+    <p class="note">หน่วย: การเลื่อน (ม.), การหมุน (ฟิลิปดา), มาตราส่วน (ppm) — ทิศทาง Indian 1975 → WGS84</p>
+    <div class="grid" style="margin-top:8px">
+      <div><label for="ctx">ΔX</label><input id="ctx" value="204.4798" inputmode="decimal"></div>
+      <div><label for="cty">ΔY</label><input id="cty" value="837.8940" inputmode="decimal"></div>
+      <div><label for="ctz">ΔZ</label><input id="ctz" value="294.7765" inputmode="decimal"></div>
+      <div><label for="crx">Rx</label><input id="crx" value="0" inputmode="decimal"></div>
+      <div><label for="cry">Ry</label><input id="cry" value="0" inputmode="decimal"></div>
+      <div><label for="crz">Rz</label><input id="crz" value="0" inputmode="decimal"></div>
+      <div><label for="cs">Scale</label><input id="cs" value="0" inputmode="decimal"></div>
+      <div><label for="cconv">อนุสัญญาการหมุน</label><select id="cconv"><option value="pv">Position Vector</option><option value="cf">Coordinate Frame</option></select></div>
+    </div>
+  </div>
+  <div id="localOn" class="note hidden"></div>
+</section>
+
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="t1">ทีละจุด</button>
+  <button role="tab" aria-selected="false" data-tab="t2">หลายจุด</button>
+  <button role="tab" aria-selected="false" data-tab="t3">ปรับแก้ด้วยหมุดร่วม</button>
+  <button role="tab" aria-selected="false" data-tab="t4">ตรวจความถูกต้อง</button>
+</div>
+
+<section class="sheet" id="t1" role="tabpanel">
+  <div id="mgrsIn" style="display:none">
+    <div class="grid"><div style="grid-column:1/-1"><label for="sMgrs">MGRS</label><input id="sMgrs" spellcheck="false" placeholder="48P SU 90000 95000" value="48P SU 90000 95000"></div></div>
+    <label class="chk"><input type="checkbox" id="mgCenter"> ใช้จุดกึ่งกลางของช่องแทนมุมล่างซ้าย</label>
+  </div>
+  <div class="grid" id="geoIn" style="display:none">
+    <div><label for="sLat">ละติจูด</label><input id="sLat" placeholder="12 36 17.0291 N หรือ 12.604730" value="12.604730"></div>
+    <div><label for="sLon">ลองจิจูด</label><input id="sLon" placeholder="102 08 47.2115 E หรือ 102.146448" value="102.146448"></div>
+  </div>
+  <div class="grid">
+    <div class="utmIn"><label for="sE">Easting (ม.)</label><input id="sE" inputmode="decimal" value="190000.000"></div>
+    <div class="utmIn"><label for="sN">Northing (ม.)</label><input id="sN" inputmode="decimal" value="1395000.000"></div>
+    <div><label for="sH">ความสูงทรงรี h (ม., ไม่บังคับ)</label><input id="sH" inputmode="decimal" value="0"></div>
+  </div>
+  <div class="row"><button class="btn" id="goOne">แปลงพิกัด</button></div>
+  <div class="readout" id="outOne" aria-live="polite"></div>
+</section>
+
+<section class="sheet hidden" id="t2" role="tabpanel">
+  <label for="bIn" id="bLbl">วางข้อมูล บรรทัดละจุด: ชื่อหมุด, E, N (คั่นด้วยจุลภาค แท็บ หรือช่องว่าง ชื่อหมุดไม่บังคับ)</label>
+  <div class="row" style="margin:0 0 10px">
+    <button class="btn ghost" id="csvBtn">นำเข้าไฟล์ CSV</button>
+    <input type="file" id="csvFile" accept=".csv,.txt,text/csv,text/plain" class="hidden">
+    <span class="note" style="margin:0">รองรับไฟล์จาก Excel, QGIS, กล้องสำรวจ/GNSS ภาษาไทยทั้ง UTF-8 และ ANSI</span>
+  </div>
+  <div id="csvMap" class="hidden"></div>
+  <textarea id="bIn">BM1,190000.000,1395000.000
+BM2,191250.500,1396110.250
+BM3 188420.125 1393875.600</textarea>
+  <div class="row"><button class="btn" id="goBatch">แปลงทั้งหมด</button><button class="btn ghost" id="cpBatch">คัดลอกผลเป็น CSV</button><button class="btn ghost" id="dlBatch">บันทึกเป็นไฟล์ CSV</button></div>
+  <div class="tbl" id="bTbl"></div>
+  <textarea id="bOut" class="hidden" readonly aria-label="ผลลัพธ์ CSV"></textarea>
+</section>
+
+<section class="sheet hidden" id="t3" role="tabpanel">
+  <h2>ปรับแก้เฉพาะพื้นที่จากหมุดที่รู้ค่าทั้งสองระบบ</h2>
+  <p class="note" style="margin-top:0">ใช้เมื่อต้องการความถูกต้องระดับเซนติเมตรในงานรังวัด ป้อนหมุดร่วมที่มีทั้งค่า Indian 1975 และ WGS84 (จาก RTK/หมุดควบคุม) อยู่ในโซนเดียวกัน เครื่องมือจะแปลงด้วยพารามิเตอร์ที่เลือกก่อน แล้วหาค่าแก้ส่วนที่เหลือด้วยวิธีกำลังสองน้อยที่สุด</p>
+  <div class="grid" style="margin-top:10px">
+    <div><label for="lz">โซนของหมุดร่วม</label><select id="lz"><option value="47">47N</option><option value="48" selected>48N</option></select></div>
+    <div><label for="lm">แบบจำลอง</label><select id="lm"><option value="h4">Helmert 2 มิติ (4 พารามิเตอร์)</option><option value="a6">Affine (6 พารามิเตอร์)</option></select></div>
+  </div>
+  <label for="lIn" style="margin-top:10px">บรรทัดละหมุด: ชื่อ, E_Indian, N_Indian, E_WGS84, N_WGS84</label>
+  <textarea id="lIn" placeholder="CP1,190000.000,1395000.000,189583.412,1395311.380"></textarea>
+  <div class="row"><button class="btn" id="goFit">คำนวณค่าปรับแก้</button><button class="btn ghost hidden" id="useFit">ใช้ค่าปรับแก้นี้</button><button class="btn ghost hidden" id="dropFit">เลิกใช้</button></div>
+  <div id="fitOut"></div>
+
+  <div class="saved">
+    <h2 style="margin-top:22px">ค่าปรับแก้ที่บันทึกไว้</h2>
+    <p class="note" style="margin-top:0">บันทึกแยกตามพื้นที่ เช่น ชื่อตำบลหรือโครงการ ระบบจะเก็บรายการหมุดร่วม โซน แบบจำลอง และชุดพารามิเตอร์ไว้ด้วยกัน เมื่อเรียกใช้จะคำนวณใหม่จากหมุดทุกครั้งแล้วตรวจว่าตรงกับค่าที่บันทึก</p>
+    <div class="grid">
+      <div style="grid-column:1/-1"><label for="pfName">ชื่อพื้นที่</label><input id="pfName" placeholder="เช่น ต.ท่าช้าง อ.เมืองจันทบุรี"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="pfSave">บันทึกในเครื่องนี้</button>
+      <button class="btn ghost" id="pfExport">บันทึกเป็นไฟล์</button>
+      <button class="btn ghost" id="pfImportBtn">เปิดไฟล์ค่าปรับแก้</button>
+      <input type="file" id="pfImport" accept=".json,application/json" class="hidden" multiple>
+    </div>
+    <label class="chk"><input type="checkbox" id="pfAuto"> เปิดใช้ค่าปรับแก้ล่าสุดอัตโนมัติเมื่อเปิดหน้านี้</label>
+    <div id="pfMsg"></div>
+    <div class="tbl" id="pfList"></div>
+  </div>
+</section>
+
+<section class="sheet hidden" id="t4" role="tabpanel">
+  <h2>ตรวจความถูกต้องของเครื่องมือบนเครื่องนี้</h2>
+  <p class="note" style="margin-top:0">เทียบผลกับค่าอ้างอิงที่คำนวณจากไลบรารี PROJ (UTM และการแปลงพื้นหลักฐาน 48 กรณี ทั้งสองทิศทาง ทั้งในโซนและข้ามโซน) และ pygeodesy (MGRS 8 จุด) เกณฑ์ผ่าน: ต่างไม่เกิน 1 มม. และ MGRS ตรงทุกตัวอักษร</p>
+  <div class="row"><button class="btn" id="goTest">เริ่มตรวจ</button></div>
+  <div id="testOut"></div>
+</section>
+<section class="sheet" id="mapBox" aria-label="แผนที่">
+  <h2>ตำแหน่งบนภาพถ่ายทางอากาศ</h2>
+  <p class="note" style="margin-top:0">ภาพถ่ายและแผนที่ฐานทุกชั้นอ้างอิง WGS84 (เลือกแผนที่ฐานและเปิด/ปิดเงาภูมิประเทศได้ด้านล่าง) ดังนั้นตำแหน่งจริงบนพื้นดินคือจุดที่เป็นค่า WGS84 ส่วนจุดที่เป็นค่า Indian 1975 ถูกวางตามตัวเลขละติจูด/ลองจิจูดโดยตรง เพื่อให้เห็นว่าถ้านำค่าที่ยังไม่แปลงไปใช้บนแผนที่ WGS84 จะคลาดไปที่ใดและไกลเท่าใด</p>
+  <div class="legend">
+    <span><span class="dot" style="background:#E8A33D"></span>ค่าเดิม (ที่ป้อน)</span>
+    <span><span class="dot" style="background:#2B8FD6"></span>ค่าที่แปลงแล้ว</span>
+  </div>
+  <div style="margin-top:8px">
+    <label class="chk inline"><input type="checkbox" id="mShowO" checked> ค่าเดิม</label>
+    <label class="chk inline"><input type="checkbox" id="mShowC" checked> ค่าที่แปลงแล้ว</label>
+    <label class="chk inline"><input type="checkbox" id="mShowL" checked> เส้นเชื่อมและระยะ</label>
+    <label class="chk inline"><input type="checkbox" id="mShowN" checked> ชื่อหมุด</label>
+  </div>
+  <div class="grid" style="margin-top:10px">
+    <div style="grid-column:1/-1"><label for="bmSel">แผนที่ฐาน</label><select id="bmSel"></select></div>
+  </div>
+  <div style="margin-top:6px">
+    <label class="chk inline"><input type="checkbox" id="bmHs" checked> เงาภูมิประเทศ</label>
+    <label class="chk inline"><input type="checkbox" id="bmLbl"> ชื่อสถานที่</label>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="gpsBtn">📍 แสดงตำแหน่งของฉัน</button>
+    <label class="chk inline" style="margin:0"><input type="checkbox" id="gpsFollow" checked> ให้แผนที่เลื่อนตาม</label>
+  </div>
+  <div id="gpsInfo" class="hidden"></div>
+  <div id="mapWarn" class="warn hidden"></div>
+  <div id="map"></div>
+  <p class="note" id="mapNote">กดแปลงพิกัดเพื่อแสดงตำแหน่ง</p>
+</section>
+
+<footer>
+<p>ไฟล์นี้ทำงานได้โดยไม่ต้องเชื่อมอินเทอร์เน็ต (ถ้าออฟไลน์จะใช้ฟอนต์ของเครื่องแทน) และไม่ส่งข้อมูลพิกัดออกไปที่ใด</p>
+<p>ความสูง h มีผลต่อค่าทางราบน้อยมาก (ประมาณ 3 มม. ต่อ 50 ม.) จึงใส่ 0 ได้ถ้าไม่ทราบ ค่าพารามิเตอร์ 3 ตัวแบบประเทศมีความถูกต้องราว 1–5 ม. ตามที่ EPSG ระบุ หากงานต้องการระดับเซนติเมตร ให้ใช้แท็บปรับแก้ด้วยหมุดร่วม</p>
+<p class="credit">© 2569 พัฒนาโดย นายธราเทพ ทองเบ้า สงวนลิขสิทธิ์</p>
+</footer>
+</div>
+<script>
+// ===== Geodesy core (Krüger n^6 series, Karney 2011) =====
+const ELL={
+  everest:{a:6377276.345,rf:300.8017},   // Everest 1830 (1937 Adjustment) – Indian 1975
+  wgs84:{a:6378137.0,rf:298.257223563}
+};
+function tmConst(el){
+  const a=el.a,f=1/el.rf,n=f/(2-f),e2=f*(2-f),e=Math.sqrt(e2);
+  const n2=n*n,n3=n2*n,n4=n3*n,n5=n4*n,n6=n5*n;
+  const A=a/(1+n)*(1+n2/4+n4/64+n6/256);
+  const al=[0,
+    n/2-2*n2/3+5*n3/16+41*n4/180-127*n5/288+7891*n6/37800,
+    13*n2/48-3*n3/5+557*n4/1440+281*n5/630-1983433*n6/1935360,
+    61*n3/240-103*n4/140+15061*n5/26880+167603*n6/181440,
+    49561*n4/161280-179*n5/168+6601661*n6/7257600,
+    34729*n5/80640-3418889*n6/1995840,
+    212378941*n6/319334400];
+  const be=[0,
+    n/2-2*n2/3+37*n3/96-n4/360-81*n5/512+96199*n6/604800,
+    n2/48+n3/15-437*n4/1440+46*n5/105-1118711*n6/3870720,
+    17*n3/480-37*n4/840-209*n5/4480+5569*n6/90720,
+    4397*n4/161280-11*n5/504-830251*n6/7257600,
+    4583*n5/161280-108847*n6/3991680,
+    20648693*n6/638668800];
+  return {a,f,e,e2,A,al,be};
+}
+const K0=0.9996,FE=500000,FN=0;
+const D2R=Math.PI/180;
+function cm(zone){return (zone*6-183)*D2R;}
+function geo2utm(latD,lonD,zone,el){
+  const c=tmConst(el),phi=latD*D2R,lam=lonD*D2R-cm(zone);
+  const tau=Math.tan(phi);
+  const sig=Math.sinh(c.e*Math.atanh(c.e*tau/Math.sqrt(1+tau*tau)));
+  const taup=tau*Math.sqrt(1+sig*sig)-sig*Math.sqrt(1+tau*tau);
+  const xip=Math.atan2(taup,Math.cos(lam));
+  const etap=Math.asinh(Math.sin(lam)/Math.sqrt(taup*taup+Math.cos(lam)**2));
+  let xi=xip,eta=etap;
+  for(let j=1;j<=6;j++){xi+=c.al[j]*Math.sin(2*j*xip)*Math.cosh(2*j*etap);eta+=c.al[j]*Math.cos(2*j*xip)*Math.sinh(2*j*etap);}
+  return {E:FE+K0*c.A*eta,N:FN+K0*c.A*xi};
+}
+function utm2geo(E,N,zone,el){
+  const c=tmConst(el);
+  const xi=(N-FN)/(K0*c.A),eta=(E-FE)/(K0*c.A);
+  let xip=xi,etap=eta;
+  for(let j=1;j<=6;j++){xip-=c.be[j]*Math.sin(2*j*xi)*Math.cosh(2*j*eta);etap-=c.be[j]*Math.cos(2*j*xi)*Math.sinh(2*j*eta);}
+  const sh=Math.sinh(etap),sx=Math.sin(xip),cx=Math.cos(xip);
+  const taup=sx/Math.sqrt(sh*sh+cx*cx);
+  let tau=taup;
+  for(let i=0;i<8;i++){
+    const s=Math.sinh(c.e*Math.atanh(c.e*tau/Math.sqrt(1+tau*tau)));
+    const ti=tau*Math.sqrt(1+s*s)-s*Math.sqrt(1+tau*tau);
+    const d=(taup-ti)/Math.sqrt(1+ti*ti)*(1+(1-c.e2)*tau*tau)/((1-c.e2)*Math.sqrt(1+tau*tau));
+    tau+=d; if(Math.abs(d)<1e-14)break;
+  }
+  return {lat:Math.atan(tau)/D2R,lon:(cm(zone)+Math.atan2(sh,cx))/D2R};
+}
+function geo2ecef(lat,lon,h,el){
+  const c=tmConst(el),p=lat*D2R,l=lon*D2R,s=Math.sin(p);
+  const Nr=c.a/Math.sqrt(1-c.e2*s*s);
+  return [(Nr+h)*Math.cos(p)*Math.cos(l),(Nr+h)*Math.cos(p)*Math.sin(l),(Nr*(1-c.e2)+h)*s];
+}
+function ecef2geo(X,Y,Z,el){
+  const c=tmConst(el),p=Math.hypot(X,Y),lon=Math.atan2(Y,X);
+  let lat=Math.atan2(Z,p*(1-c.e2)),h=0;
+  for(let i=0;i<10;i++){
+    const s=Math.sin(lat),Nr=c.a/Math.sqrt(1-c.e2*s*s);
+    h=p/Math.cos(lat)-Nr;
+    const nl=Math.atan2(Z,p*(1-c.e2*Nr/(Nr+h)));
+    if(Math.abs(nl-lat)<1e-14){lat=nl;break;} lat=nl;
+  }
+  return {lat:lat/D2R,lon:lon/D2R,h};
+}
+// Helmert 7-param. p={tx,ty,tz,rx,ry,rz(arcsec),s(ppm),conv:'pv'|'cf'}
+function helmert(X,p,inverse){
+  const k=Math.PI/(180*3600),sg=p.conv==='cf'?-1:1;
+  const rx=sg*(p.rx||0)*k,ry=sg*(p.ry||0)*k,rz=sg*(p.rz||0)*k,m=1+(p.s||0)*1e-6;
+  const fwd=v=>[p.tx+m*(v[0]-rz*v[1]+ry*v[2]),p.ty+m*(rz*v[0]+v[1]-rx*v[2]),p.tz+m*(-ry*v[0]+rx*v[1]+v[2])];
+  if(!inverse)return fwd(X);
+  let v=[X[0]-p.tx,X[1]-p.ty,X[2]-p.tz];
+  for(let i=0;i<6;i++){const f=fwd(v);v=[v[0]+(X[0]-f[0]),v[1]+(X[1]-f[1]),v[2]+(X[2]-f[2])];}
+  return v;
+}
+function datumShift(lat,lon,h,p,toWGS){
+  const src=toWGS?ELL.everest:ELL.wgs84,dst=toWGS?ELL.wgs84:ELL.everest;
+  const X=geo2ecef(lat,lon,h,src);
+  const Y=helmert(X,p,!toWGS);
+  return ecef2geo(Y[0],Y[1],Y[2],dst);
+}
+function zoneOf(lon){return Math.floor((lon+180)/6)+1;}
+// full UTM->UTM
+function convert(E,N,h,zin,zout,p,toWGS){
+  const g1=utm2geo(E,N,zin,toWGS?ELL.everest:ELL.wgs84);
+  const g2=datumShift(g1.lat,g1.lon,h,p,toWGS);
+  const zo=zout==='auto'?zoneOf(g2.lon):zout;
+  const u=geo2utm(g2.lat,g2.lon,zo,toWGS?ELL.wgs84:ELL.everest);
+  return {E:u.E,N:u.N,zone:zo,lat1:g1.lat,lon1:g1.lon,lat2:g2.lat,lon2:g2.lon,h2:g2.h};
+}
+// ===== App =====
+const PSETS=[
+ {id:'rtsd',name:'กรมแผนที่ทหาร 3 พารามิเตอร์ (204.4798, 837.8940, 294.7765)',p:{tx:204.4798,ty:837.8940,tz:294.7765}},
+ {id:'e1304',name:'EPSG:1304 (210, 814, 289) ความถูกต้อง ~5 ม.',p:{tx:210,ty:814,tz:289}},
+ {id:'e1154',name:'EPSG:1154 (209, 818, 290) ความถูกต้อง ~5 ม.',p:{tx:209,ty:818,tz:290}},
+ {id:'e1537',name:'EPSG:1537 แหล่งบงกช (204.64, 834.74, 293.80) เฉพาะทะเล',p:{tx:204.64,ty:834.74,tz:293.8}},
+ {id:'e1812pv',name:'EPSG:1812 7 พารามิเตอร์ แบบ Position Vector (ค่าตั้งต้นของ QGIS/PROJ)',p:{tx:293,ty:836,tz:318,rx:0.5,ry:1.6,rz:-2.8,s:2.1,conv:'pv'},
+   warn:'ชุดนี้คือค่าที่ QGIS/PROJ เลือกให้อัตโนมัติสำหรับ EPSG:24047/24048 แต่ให้ผลต่างจากชุด 3 พารามิเตอร์ทุกชุดราว 180–190 เมตร ถ้าใช้อนุสัญญา Coordinate Frame แทน จะเข้าใกล้ชุดอื่นภายในไม่กี่เมตร ควรตรวจกับหมุดจริงก่อนใช้'},
+ {id:'e1812cf',name:'EPSG:1812 ค่าเดียวกันแต่ใช้ Coordinate Frame',p:{tx:293,ty:836,tz:318,rx:0.5,ry:1.6,rz:-2.8,s:2.1,conv:'cf'},
+   warn:'ชุดนี้ไม่ใช่ค่าทางการของ EPSG ใส่ไว้เพื่อเปรียบเทียบเท่านั้น'},
+ {id:'custom',name:'กำหนดเอง (7 พารามิเตอร์)'}
+];
+const $=id=>document.getElementById(id);
+let toWGS=true, LOCAL=null, PENDING=null;
+const num=v=>{const x=parseFloat(String(v).replace(/,/g,''));return isFinite(x)?x:NaN;};
+
+PSETS.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;$('pset').appendChild(o);});
+function params(){
+  const id=$('pset').value;
+  if(id!=='custom')return PSETS.find(s=>s.id===id).p;
+  return {tx:num($('ctx').value),ty:num($('cty').value),tz:num($('ctz').value),rx:num($('crx').value)||0,ry:num($('cry').value)||0,rz:num($('crz').value)||0,s:num($('cs').value)||0,conv:$('cconv').value};
+}
+function onPset(){
+  const s=PSETS.find(x=>x.id===$('pset').value);
+  $('customBox').classList.toggle('hidden',s.id!=='custom');
+  $('psetWarn').classList.toggle('hidden',!s.warn); $('psetWarn').textContent=s.warn||'';
+  if(LOCAL){LOCAL=null;showLocal();}
+}
+$('pset').onchange=onPset;
+function setDir(f){
+  toWGS=f;$('dFwd').setAttribute('aria-pressed',f);$('dRev').setAttribute('aria-pressed',!f);
+  $('dirTitle').textContent=f?'Indian 1975 → WGS84':'WGS84 → Indian 1975';
+  $('outOne').innerHTML='';$('bTbl').innerHTML='';
+}
+$('dFwd').onclick=()=>setDir(true);$('dRev').onclick=()=>setDir(false);
+document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[role=tab]').forEach(x=>{x.setAttribute('aria-selected',x===b);$(x.dataset.tab).classList.toggle('hidden',x!==b);});
+});
+
+// Local correction: maps computed WGS UTM(lz) -> true WGS UTM(lz)
+function applyLocal(E,N,inv){
+  const L=LOCAL,dx=E-(inv?L.x1:L.x0),dy=N-(inv?L.y1:L.y0);
+  if(!inv)return [L.x1+L.a*dx+L.b*dy, L.y1+L.c*dx+L.d*dy];
+  const det=L.a*L.d-L.b*L.c;
+  return [L.x0+( L.d*dx-L.b*dy)/det, L.y0+(-L.c*dx+L.a*dy)/det];
+}
+function run(E,N,h,zin,zoutSel){
+  const p=params(), zout=zoutSel==='same'?zin:zoutSel==='auto'?'auto':+zoutSel;
+  if(!LOCAL)return convert(E,N,h,zin,zout,p,toWGS);
+  const lz=LOCAL.zone;
+  if(toWGS){
+    const r=convert(E,N,h,zin,lz,p,true);
+    const [e2,n2]=applyLocal(r.E,r.N,false);
+    const g=utm2geo(e2,n2,lz,ELL.wgs84);
+    const zo=zout==='auto'?zoneOf(g.lon):zout;
+    const u=geo2utm(g.lat,g.lon,zo,ELL.wgs84);
+    return {E:u.E,N:u.N,zone:zo,lat1:r.lat1,lon1:r.lon1,lat2:g.lat,lon2:g.lon};
+  }else{
+    const g0=utm2geo(E,N,zin,ELL.wgs84),u0=geo2utm(g0.lat,g0.lon,lz,ELL.wgs84);
+    const [e1,n1]=applyLocal(u0.E,u0.N,true);
+    const r=convert(e1,n1,h,lz,zout==='auto'?'auto':zout,p,false);
+    r.lat1=g0.lat;r.lon1=g0.lon;return r;
+  }
+}
+const f3=x=>x.toFixed(3), f8=x=>x.toFixed(8);
+// ---- Lat/Long formats (ปัดที่ระดับหน่วยย่อยสุดก่อน กันค่า 60″) ----
+function fmtAng(d,isLat,mode){
+  const hemi=isLat?(d<0?'S':'N'):(d<0?'W':'E'); d=Math.abs(d);
+  if(mode==='dd') return `${d.toFixed(8)}° ${hemi}`;
+  if(mode==='ddm'){ let t=Math.round(d*60*1e6)/1e6; const D=Math.floor(t/60), m=t-D*60;
+    return `${D}° ${m.toFixed(6).padStart(9,'0')}′ ${hemi}`; }
+  let t=Math.round(d*3600*1e4)/1e4; const D=Math.floor(t/3600); t-=D*3600; const m=Math.floor(t/60), sec=t-m*60;
+  return `${D}° ${String(m).padStart(2,'0')}′ ${sec.toFixed(4).padStart(7,'0')}″ ${hemi}`;
+}
+const fmtLL=(lat,lon)=>{const m=$('llf').value;return [fmtAng(lat,true,m),fmtAng(lon,false,m)];};
+// ---- MGRS (ระบบตัวอักษรมาตรฐาน AA ใช้ได้ทั้ง WGS84 และ Everest) ----
+function mgrs(lat,lon,el,digits){
+  if(lat<-80||lat>=84)return 'อยู่นอกขอบเขต MGRS';
+  const zone=zoneOf(lon), u=geo2utm(lat,lon,zone,el);
+  const band='CDEFGHJKLMNPQRSTUVWX'[Math.min(19,Math.floor((lat+80)/8))];
+  const set=((zone-1)%3), colL=['ABCDEFGH','JKLMNPQR','STUVWXYZ'][set];
+  const rows='ABCDEFGHJKLMNPQRSTUV';
+  const e100=Math.floor(u.E/100000), n100=Math.floor(u.N/100000);
+  const col=colL[e100-1], row=rows[(n100+(zone%2===0?5:0))%20];
+  const div=Math.pow(10,5-digits);
+  const e=String(Math.floor((u.E%100000)/div)).padStart(digits,'0');
+  const n=String(Math.floor((u.N%100000)/div)).padStart(digits,'0');
+  return `${zone}${band} ${col}${row} ${e} ${n}`;
+}
+const elOf=wgs=>wgs?ELL.wgs84:ELL.everest;
+const srcN=()=>toWGS?'Indian 1975':'WGS84', dstN=()=>toWGS?'WGS84':'Indian 1975';
+
+
+// ---- Geodesic distance on WGS84 (Vincenty inverse) ----
+function geodInv(lat1,lon1,lat2,lon2){
+  const a=6378137,f=1/298.257223563,b=a*(1-f);
+  const L_=(lon2-lon1)*D2R,U1=Math.atan((1-f)*Math.tan(lat1*D2R)),U2=Math.atan((1-f)*Math.tan(lat2*D2R));
+  const sU1=Math.sin(U1),cU1=Math.cos(U1),sU2=Math.sin(U2),cU2=Math.cos(U2);
+  let lam=L_,it=0,sS,cS,sig,sA,c2A,c2Sm;
+  do{const sl=Math.sin(lam),cl=Math.cos(lam);
+    sS=Math.sqrt((cU2*sl)**2+(cU1*sU2-sU1*cU2*cl)**2); if(sS===0)return 0;
+    cS=sU1*sU2+cU1*cU2*cl; sig=Math.atan2(sS,cS); sA=cU1*cU2*sl/sS; c2A=1-sA*sA;
+    c2Sm=c2A?cS-2*sU1*sU2/c2A:0; const C=f/16*c2A*(4+f*(4-3*c2A));
+    const lp=lam; lam=L_+(1-C)*f*sA*(sig+C*sS*(c2Sm+C*cS*(-1+2*c2Sm*c2Sm)));
+    if(Math.abs(lam-lp)<1e-13)break;}while(++it<200);
+  const u2=c2A*(a*a-b*b)/(b*b),A=1+u2/16384*(4096+u2*(-768+u2*(320-175*u2))),B=u2/1024*(256+u2*(-128+u2*(74-47*u2)));
+  const dS=B*sS*(c2Sm+B/4*(cS*(-1+2*c2Sm*c2Sm)-B/6*c2Sm*(-3+4*sS*sS)*(-3+4*c2Sm*c2Sm)));
+  return b*A*(sig-dS);
+}
+// แยกส่วนประกอบของระยะเลื่อน: เปลี่ยนทรงรี + เลื่อนตำแหน่งจริง
+function shiftBreakdown(r,E,N){
+  const elD=toWGS?ELL.wgs84:ELL.everest;
+  const A=geo2utm(r.lat1,r.lon1,r.zone,elD);            // ละติจูด/ลองจิจูดเดิม ฉายบนทรงรีปลายทาง
+  const p1E=A.E-E,p1N=A.N-N,p2E=r.E-A.E,p2N=r.N-A.N;
+  const g=geodInv(r.lat1,r.lon1,r.lat2,r.lon2), gridP2=Math.hypot(p2E,p2N);
+  const sg=x=>(x>=0?'+':'')+f3(x);
+  return `<details><summary>ทำไมระยะนี้ไม่เท่ากับระยะบนแผนที่</summary>
+  <div class="tbl"><table><thead><tr><th>ส่วนประกอบ</th><th>ΔE</th><th>ΔN</th><th>ระยะ (ม.)</th></tr></thead><tbody>
+  <tr><td>① เปลี่ยนทรงรี Everest ↔ WGS84 (ละติจูด/ลองจิจูดเท่าเดิม)</td><td>${sg(p1E)}</td><td>${sg(p1N)}</td><td>${f3(Math.hypot(p1E,p1N))}</td></tr>
+  <tr><td>② ตำแหน่งเลื่อนจริงบนพื้น (วัดบนกริด UTM)</td><td>${sg(p2E)}</td><td>${sg(p2N)}</td><td>${f3(gridP2)}</td></tr>
+  <tr><th>รวมแบบเวกเตอร์ ① + ② = ระยะที่แสดงด้านบน</th><th>${sg(p1E+p2E)}</th><th>${sg(p1N+p2N)}</th><th>${f3(Math.hypot(p1E+p2E,p1N+p2N))}</th></tr>
+  <tr><td>② วัดเป็นระยะบนพื้นดินจริง (ระยะบนแผนที่)</td><td></td><td></td><td>${f3(g)}</td></tr>
+  </tbody></table></div>
+  <p class="note">ระยะบนแผนที่คือส่วน ② เท่านั้น เพราะแผนที่วางทั้งสองจุดตามละติจูด/ลองจิจูด ส่วน ① เกิดจากการฉายแผนที่บนทรงรีต่างกัน ไม่ใช่การเลื่อนบนพื้น ระยะ ② บนกริดยาวกว่าบนพื้นดิน ${((gridP2/g-1)*1e6).toFixed(0)} ppm ตามค่า scale factor ของ UTM ที่ตำแหน่งนี้</p></details>`;
+}
+
+
+// ---- อ่านค่า MGRS กลับเป็น UTM ----
+function parseMGRS(v,el,center){
+  if(v===undefined||v===null)return null;
+  const s=String(v).toUpperCase().replace(/[^0-9A-Z]/g,'');
+  const m=s.match(/^(\d{1,2})([C-HJ-NP-X])([A-HJ-NP-Z])([A-HJ-NP-V])(\d*)$/);
+  if(!m)return null;
+  const zone=+m[1],band=m[2],colL=m[3],rowL=m[4],dig=m[5];
+  if(zone<1||zone>60||dig.length%2)return null;
+  const p=dig.length/2; if(p>5)return null;
+  const colSet=['ABCDEFGH','JKLMNPQR','STUVWXYZ'][(zone-1)%3],ci=colSet.indexOf(colL);
+  const rowsL='ABCDEFGHJKLMNPQRSTUV';let ri=rowsL.indexOf(rowL);
+  if(ci<0||ri<0)return null;
+  ri=(ri-(zone%2===0?5:0)+20)%20;
+  const latBand=('CDEFGHJKLMNPQRSTUVWX'.indexOf(band)-10)*8;
+  if(latBand<0)return null; // รองรับเฉพาะซีกโลกเหนือ
+  const div=Math.pow(10,5-p),half=center?div/2:0;
+  const e=p?+dig.slice(0,p)*div:0,n=p?+dig.slice(p)*div:0;
+  const nBand=Math.floor(geo2utm(latBand,zone*6-183,zone,el).N/100000)*100000;
+  let N=ri*100000; while(N<nBand-1)N+=2000000;
+  return {E:(ci+1)*100000+e+half,N:N+n+half,zone,prec:p,band};
+}
+const srcEll=()=>toWGS?ELL.everest:ELL.wgs84;
+function readMGRS(v){return parseMGRS(v,srcEll(),$('mgCenter').checked);}
+// ---- โหมดป้อนค่าเป็นละติจูด/ลองจิจูด ----
+const geoMode=()=>$('infmt').value==='geo';
+const mgMode=()=>$('infmt').value==='mgrs';
+function parseAng(v,isLat){
+  if(v===undefined||v===null)return NaN;
+  let s=String(v).trim(); if(!s)return NaN;
+  const up=s.toUpperCase(); let sign=1;
+  if(/[SW]/.test(up)||/^-/.test(s))sign=-1;
+  const nums=s.replace(/[NSEWnsew]/g,' ').replace(/[°ºDdGg]/g,' ').replace(/['′’ʹ]/g,' ').replace(/["″”ʺ]/g,' ').replace(/:/g,' ').match(/\d+(?:\.\d+)?/g);
+  if(!nums)return NaN;
+  const val=Math.abs(+nums[0])+(+(nums[1]||0))/60+(+(nums[2]||0))/3600;
+  if(nums[1]!==undefined&&+nums[1]>=60)return NaN;
+  if(nums[2]!==undefined&&+nums[2]>=60)return NaN;
+  const d=sign*val;
+  return Math.abs(d)>(isLat?90:180)?NaN:d;
+}
+function geoWarn(lat,lon){
+  if(lat<5||lat>21||lon<96||lon>107)return `ค่านี้อยู่นอกขอบเขตประเทศไทย (ละติจูด 5–21° เหนือ, ลองจิจูด 96–107° ตะวันออก) ตรวจว่าสลับละติจูดกับลองจิจูดหรือไม่`;
+  return '';
+}
+// แปลงจากละติจูด/ลองจิจูดของพื้นหลักฐานต้นทาง โดยใช้เส้นทางคำนวณเดียวกับโหมด UTM
+function runGeo(lat,lon,h,zoutSel){
+  const zsrc=zoneOf(lon),u=geo2utm(lat,lon,zsrc,toWGS?ELL.everest:ELL.wgs84);
+  const r=run(u.E,u.N,h,zsrc,zoutSel==='same'?String(zsrc):zoutSel);
+  r.srcE=u.E;r.srcN=u.N;r.srcZone=zsrc;return r;
+}
+function setInFmt(){
+  const g=geoMode(),mg=mgMode();
+  $('geoIn').style.display=g?'':'none';
+  $('mgrsIn').style.display=mg?'':'none';
+  document.querySelectorAll('.utmIn').forEach(e=>e.style.display=(g||mg)?'none':'');
+  $('zin').disabled=g||mg;$('zin').parentElement.style.opacity=(g||mg)?'.5':'';
+  $('bLbl').textContent=mg?'วางข้อมูล บรรทัดละจุด: ชื่อหมุด, MGRS (คั่นชื่อกับค่า MGRS ด้วยจุลภาค ชื่อหมุดไม่บังคับ)':
+    g?'วางข้อมูล บรรทัดละจุด: ชื่อหมุด, ละติจูด, ลองจิจูด (คั่นด้วยจุลภาค รับทั้งองศาทศนิยมและ องศา ลิปดา ฟิลิปดา)':
+    'วางข้อมูล บรรทัดละจุด: ชื่อหมุด, E, N (คั่นด้วยจุลภาค แท็บ หรือช่องว่าง ชื่อหมุดไม่บังคับ)';
+  $('bIn').value=mg?`BM1,48P SU 90000 95000
+BM2,48PSU9125096110
+BM3,48P SU 88420 93875`:g?`BM1,12 36 17.0291 N,102 08 47.2115 E
+BM2,12.614881,102.157838
+BM3,12° 35' 39.9074" N,102° 07' 55.3103" E`:`BM1,190000.000,1395000.000
+BM2,191250.500,1396110.250
+BM3 188420.125 1393875.600`;
+  $('bTbl').innerHTML='';$('bOut').value='';$('outOne').innerHTML='';
+  if(CSV){$('csvMap').classList.add('hidden');CSV=null;}
+  $('goOne').click();
+}
+$('infmt').onchange=setInFmt;
+$('mgCenter').onchange=()=>{$('goOne').click();if($('bTbl').innerHTML)$('goBatch').click();};
+function parseMgrsLines(txt){
+  const rows=[],errs=[];
+  txt.split(/\r?\n/).forEach((ln,i)=>{
+    ln=ln.trim(); if(!ln||ln.startsWith('#'))return;
+    let name=`${i+1}`,val=ln;
+    if(/[,;\t]/.test(ln)){const p=ln.split(/\s*[,;\t]\s*/).filter(Boolean);val=p[p.length-1];if(p.length>1)name=p.slice(0,-1).join(' ');}
+    let g=readMGRS(val);
+    if(!g){const t=ln.split(/\s+/);if(t.length>1){g=readMGRS(t.slice(1).join(''));if(g)name=t[0];}}
+    if(!g){errs.push(i+1);return;}
+    rows.push({name,g});
+  });
+  return {rows,errs};
+}
+// อ่านหลายบรรทัดในโหมดละติจูด/ลองจิจูด
+function parseGeoLines(txt){
+  const rows=[],errs=[];
+  txt.split(/\r?\n/).forEach((ln,i)=>{
+    ln=ln.trim(); if(!ln||ln.startsWith('#'))return;
+    let t=/[,;\t]/.test(ln)?ln.split(/\s*[,;\t]\s*/).filter(x=>x!==''):ln.split(/\s+/);
+    let name=`${i+1}`;
+    if(t.length>2){const c=t.slice(-2);if(isFinite(parseAng(c[0],true))&&isFinite(parseAng(c[1],false))){name=t.slice(0,t.length-2).join(' ')||name;t=c;}}
+    const lat=parseAng(t[0],true),lon=parseAng(t[1],false);
+    if(!isFinite(lat)||!isFinite(lon)){errs.push(i+1);return;}
+    rows.push({name,lat,lon});
+  });
+  return {rows,errs};
+}
+$('goOne').onclick=()=>{
+  const h=num($('sH').value)||0,o=$('outOne');let E,N,zin,r;
+  if(mgMode()){
+    const g=readMGRS($('sMgrs').value);
+    if(!g){o.innerHTML='<div class="warn">อ่านค่า MGRS ไม่ได้ รูปแบบที่ถูกต้องคือ 48P SU 89583 95311 หรือ 48PSU8958395311 (จำนวนหลักตัวเลขต้องเป็นเลขคู่ ไม่เกิน 10 หลัก และรองรับเฉพาะซีกโลกเหนือ)</div>';return;}
+    E=g.E;N=g.N;zin=g.zone;
+    r=run(E,N,h,zin,$('zout').value);
+    r.mgPrec=g.prec;
+  }else if(geoMode()){
+    const lat=parseAng($('sLat').value,true),lon=parseAng($('sLon').value,false);
+    if(!isFinite(lat)||!isFinite(lon)){o.innerHTML='<div class="warn">อ่านค่าละติจูด/ลองจิจูดไม่ได้ ใส่ได้ทั้งแบบ 12.604730 หรือ 12 36 17.03 N (ละติจูดต้องไม่เกิน 90° ถ้าใส่เกิน อาจสลับช่องละติจูดกับลองจิจูด)</div>';return;}
+    const w=geoWarn(lat,lon); if(w){o.innerHTML=`<div class="warn">${w}</div>`;return;}
+    r=runGeo(lat,lon,h,$('zout').value);E=r.srcE;N=r.srcN;zin=r.srcZone;
+  }else{
+    E=num($('sE').value);N=num($('sN').value);zin=+$('zin').value;
+    if(!isFinite(E)||!isFinite(N)){o.innerHTML='<div class="warn">ใส่ค่า Easting และ Northing เป็นตัวเลข</div>';return;}
+    if(E<100000||E>900000||N<500000||N>2400000){o.innerHTML='<div class="warn">ค่าอยู่นอกช่วงปกติของประเทศไทย (E 100,000–900,000, N 500,000–2,400,000) ตรวจสลับ E/N หรือหน่วย</div>';return;}
+    r=run(E,N,h,zin,$('zout').value);
+  }
+  const dg=+$('mgp').value;
+  const sameZ=r.zone===zin, dE=r.E-E, dN=r.N-N;
+  const lonWarn=zoneOf(r.lon2)!==r.zone?`<div class="note">จุดนี้อยู่ที่ลองจิจูด ${r.lon2.toFixed(4)}° ซึ่งตามหลักอยู่โซน ${zoneOf(r.lon2)} (ผลลัพธ์นี้เป็นค่าต่อโซน ส่วน MGRS ใช้โซนตามจริงเสมอ)</div>`:'';
+  const [la1,lo1]=fmtLL(r.lat1,r.lon1),[la2,lo2]=fmtLL(r.lat2,r.lon2);
+  const m1=mgrs(r.lat1,r.lon1,elOf(!toWGS),dg), m2=mgrs(r.lat2,r.lon2,elOf(toWGS),dg);
+  o.innerHTML=`<div class="coord">
+    <span class="k">E (${dstN()} ${r.zone}N)</span><span class="v">${f3(r.E)}</span>
+    <span class="k">N (${dstN()} ${r.zone}N)</span><span class="v">${f3(r.N)}</span></div>
+    ${sameZ?`<div class="shift"><span>ΔE ${dE>=0?'+':''}${f3(dE)} ม.</span><span>ΔN ${dN>=0?'+':''}${f3(dN)} ม.</span><span>ระยะ ${f3(Math.hypot(dE,dN))} ม.</span></div>`:''}
+    ${sameZ?shiftBreakdown(r,E,N):''}
+    <div class="tbl"><table class="gtab"><thead><tr><th></th><th>${dstN()} (ผลลัพธ์)</th><th>${srcN()} (ค่าที่ป้อน)</th></tr></thead><tbody>
+      <tr><th>ละติจูด</th><td>${la2}</td><td>${la1}</td></tr>
+      <tr><th>ลองจิจูด</th><td>${lo2}</td><td>${lo1}</td></tr>
+      <tr><th>MGRS</th><td class="mg">${m2}</td><td class="mg">${m1}</td></tr>
+      ${(geoMode()||mgMode())?`<tr><th>UTM ของค่าที่ป้อน</th><td></td><td>โซน ${zin}N E ${f3(E)} N ${f3(N)}</td></tr>`:''}
+    </tbody></table></div>${lonWarn}
+    ${mgMode()&&r.mgPrec<5?`<p class="note">ค่า MGRS ที่ป้อนละเอียด ${[100000,10000,1000,100,10,1][r.mgPrec]} ม. ตำแหน่งที่ได้จึงเป็น${$('mgCenter').checked?'จุดกึ่งกลาง':'มุมล่างซ้าย'}ของช่องขนาดนั้น</p>`:''}
+    <p class="note">MGRS คิดบนพื้นหลักฐานของคอลัมน์นั้น ๆ ค่า MGRS บน WGS84 ใช้กับ GPS ปัจจุบัน ส่วนบน Indian 1975 ใช้กับแผนที่ทหารชุดเก่า ตัวเลขถูกตัดทิ้ง (ไม่ปัด) ตามมาตรฐาน MGRS</p>
+    ${LOCAL?'<div class="note okc">ใช้ค่าปรับแก้เฉพาะพื้นที่แล้ว</div>':''}`;
+  plotPoints([{name:'จุดที่แปลง',o:{lat:r.lat1,lon:r.lon1,E,N,z:zin},c:{lat:r.lat2,lon:r.lon2,E:r.E,N:r.N,z:r.zone}}]);
+};
+
+function parseLines(txt,need){
+  const rows=[],errs=[];
+  txt.split(/\r?\n/).forEach((ln,i)=>{
+    ln=ln.trim(); if(!ln||ln.startsWith('#'))return;
+    let t=(/[,\t;]/.test(ln)?ln.split(/\s*[,\t;]\s*/):ln.split(/\s+/)).map(x=>x.trim()).filter(Boolean);
+    const inE=v=>{const x=num(v);return x>=100000&&x<=900000;},inN=v=>{const x=num(v);return x>=500000&&x<=2400000;};
+    let name=`${i+1}`;
+    if(!isFinite(num(t[0])))name=t.shift();
+    else if(t.length>=3&&inE(t[1])&&inN(t[2])&&!(inE(t[0])&&inN(t[1])))name=t.shift(); // ชื่อหมุดเป็นตัวเลข เช่น 1, 2, 101
+    const v=t.map(num);
+    if(v.length<need||v.slice(0,need).some(x=>!isFinite(x))){errs.push(i+1);return;}
+    rows.push({name,v});
+  });
+  return {rows,errs};
+}
+const q=v=>/[",]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;
+$('goBatch').onclick=()=>{
+  const zin=+$('zin').value,dg=+$('mgp').value;
+  const G=geoMode(),M=mgMode();
+  const g=G?parseGeoLines($('bIn').value):M?parseMgrsLines($('bIn').value):null;
+  const {rows,errs}=G?{rows:g.rows.map(x=>({name:x.name,v:[x.lat,x.lon]})),errs:g.errs}
+    :M?{rows:g.rows.map(x=>({name:x.name,v:[x.g.E,x.g.N],z:x.g.zone})),errs:g.errs}
+    :parseLines($('bIn').value,2);
+  const S=srcN().replace(' ',''),D=dstN().replace(' ','');
+  let html='<table><thead><tr><th>หมุด</th><th>'+(G?`E (${S} โซน)`:'E เดิม')+'</th><th>'+(G?'N':'N เดิม')+'</th><th>E ใหม่</th><th>N ใหม่</th><th>โซน</th><th>ละติจูด</th><th>ลองจิจูด</th><th>MGRS</th></tr></thead><tbody>';
+  let csv=`name,E_${S},N_${S},E_${D},N_${D},zone,lat_${D},lon_${D},MGRS_${D}\n`;
+  const MP=[];rows.forEach(r=>{let E,N,h,o;
+    if(G){h=0;o=runGeo(r.v[0],r.v[1],0,$('zout').value);E=o.srcE;N=o.srcN;}
+    else if(M){[E,N]=r.v;h=0;o=run(E,N,0,r.z,$('zout').value==='same'?String(r.z):$('zout').value);}
+    else{[E,N,h]=r.v;o=run(E,N,h||0,zin,$('zout').value);}MP.push({name:r.name,o:{lat:o.lat1,lon:o.lon1,E,N,z:zin},c:{lat:o.lat2,lon:o.lon2,E:o.E,N:o.N,z:o.zone}});
+    const [la,lo]=fmtLL(o.lat2,o.lon2), m=mgrs(o.lat2,o.lon2,elOf(toWGS),dg);
+    html+=`<tr><td>${r.name}</td><td>${f3(E)}</td><td>${f3(N)}</td><td>${f3(o.E)}</td><td>${f3(o.N)}</td><td>${o.zone}</td><td>${la}</td><td>${lo}</td><td>${m}</td></tr>`;
+    csv+=[q(r.name),f3(E),f3(N),f3(o.E),f3(o.N),o.zone,q(la),q(lo),m].join(',')+'\n';});
+  html+='</tbody></table>';
+  if(errs.length)html+=`<div class="warn">ข้ามบรรทัดที่อ่านไม่ได้: ${errs.join(', ')}</div>`;
+  if(!rows.length)html='<div class="warn">ยังไม่มีข้อมูลที่อ่านได้ ใส่บรรทัดละจุดในรูปแบบ ชื่อ, E, N</div>';
+  $('bTbl').innerHTML=html;$('bOut').value=csv;if(MP.length)plotPoints(MP);
+};
+['llf','mgp'].forEach(id=>$(id).onchange=()=>{if($('outOne').innerHTML)$('goOne').click();if($('bTbl').innerHTML)$('goBatch').click();});
+$('cpBatch').onclick=async()=>{
+  if(!$('bOut').value)$('goBatch').click();
+  const t=$('bOut').value;
+  try{await navigator.clipboard.writeText(t);$('cpBatch').textContent='คัดลอกแล้ว';}
+  catch(e){$('bOut').classList.remove('hidden');$('bOut').select();try{document.execCommand('copy');$('cpBatch').textContent='คัดลอกแล้ว';}catch(_){$('cpBatch').textContent='เลือกข้อความด้านล่างแล้วคัดลอกเอง';}}
+  setTimeout(()=>$('cpBatch').textContent='คัดลอกผลเป็น CSV',2500);
+};
+
+// ---- Least-squares local fit ----
+function fit(src,dst,model){
+  const n=src.length,x0=src.reduce((s,p)=>s+p[0],0)/n,y0=src.reduce((s,p)=>s+p[1],0)/n,
+        x1=dst.reduce((s,p)=>s+p[0],0)/n,y1=dst.reduce((s,p)=>s+p[1],0)/n;
+  const u=src.map(p=>[p[0]-x0,p[1]-y0]),w=dst.map(p=>[p[0]-x1,p[1]-y1]);
+  let a,b,c,d;
+  if(model==='h4'){
+    let S=0,A=0,B=0;u.forEach((q,i)=>{S+=q[0]*q[0]+q[1]*q[1];A+=q[0]*w[i][0]+q[1]*w[i][1];B+=q[0]*w[i][1]-q[1]*w[i][0];});
+    const p=A/S,q=B/S;a=p;b=-q;c=q;d=p;
+  }else{
+    let sxx=0,sxy=0,syy=0,sxX=0,syX=0,sxY=0,syY=0;
+    u.forEach((q,i)=>{sxx+=q[0]*q[0];sxy+=q[0]*q[1];syy+=q[1]*q[1];sxX+=q[0]*w[i][0];syX+=q[1]*w[i][0];sxY+=q[0]*w[i][1];syY+=q[1]*w[i][1];});
+    const det=sxx*syy-sxy*sxy;
+    a=(sxX*syy-syX*sxy)/det;b=(syX*sxx-sxX*sxy)/det;c=(sxY*syy-syY*sxy)/det;d=(syY*sxx-sxY*sxy)/det;
+  }
+  return {x0,y0,x1,y1,a,b,c,d};
+}
+$('goFit').onclick=()=>{
+  const {rows,errs}=parseLines($('lIn').value,4),lz=+$('lz').value,model=$('lm').value,p=params();
+  const minN=model==='h4'?2:3,out=$('fitOut');
+  if(rows.length<minN){out.innerHTML=`<div class="warn">ต้องมีหมุดร่วมอย่างน้อย ${minN} หมุด (แนะนำ ${minN+2} หมุดขึ้นไป กระจายรอบพื้นที่งาน) ตอนนี้อ่านได้ ${rows.length} หมุด</div>`;return;}
+  const comp=rows.map(r=>{const o=convert(r.v[0],r.v[1],0,lz,lz,p,true);return [o.E,o.N];});
+  const tru=rows.map(r=>[r.v[2],r.v[3]]);
+  const T=fit(comp,tru,model);
+  const saved=LOCAL;LOCAL={...T,zone:lz};
+  let ss=0,html='<div class="tbl"><table><thead><tr><th>หมุด</th><th>ต่างก่อนปรับ (ม.)</th><th>vE</th><th>vN</th><th>ต่างหลังปรับ (ม.)</th></tr></thead><tbody>';
+  rows.forEach((r,i)=>{const [e,n]=applyLocal(comp[i][0],comp[i][1],false);const vE=tru[i][0]-e,vN=tru[i][1]-n,v=Math.hypot(vE,vN);ss+=vE*vE+vN*vN;
+    const before=Math.hypot(tru[i][0]-comp[i][0],tru[i][1]-comp[i][1]);
+    html+=`<tr><td>${r.name}</td><td>${f3(before)}</td><td>${f3(vE)}</td><td>${f3(vN)}</td><td class="${v>0.05?'bad':''}">${f3(v)}</td></tr>`;});
+  const dof=2*rows.length-(model==='h4'?4:6);
+  const rmse=Math.sqrt(ss/rows.length),s0=dof>0?Math.sqrt(ss/dof):NaN;
+  html+='</tbody></table></div>';
+  const sc=model==='h4'?Math.hypot(T.a,T.c):NaN,rot=model==='h4'?Math.atan2(T.c,T.a)*180/Math.PI*3600:NaN;
+  html+=`<p class="note">RMSE ${f3(rmse)} ม.${isFinite(s0)?`, σ₀ ${f3(s0)} ม. (ดีกรีอิสระ ${dof})`:', ไม่มีดีกรีอิสระเหลือสำหรับตรวจสอบ ควรเพิ่มหมุด'}${model==='h4'?`, มาตราส่วน ${((sc-1)*1e6).toFixed(2)} ppm, การหมุน ${rot.toFixed(3)}″, เลื่อนเฉลี่ย ΔE ${f3(T.x1-T.x0)} ΔN ${f3(T.y1-T.y0)} ม.`:''}</p>
+    <p class="note">ค่าต่างหลังปรับที่เกิน 0.05 ม. แสดงเป็นสีแดง อาจเป็นหมุดที่ค่าผิดหรือเคลื่อน ลองตัดออกแล้วคำนวณใหม่ ค่าปรับแก้นี้ใช้ได้เฉพาะภายในบริเวณที่หมุดร่วมล้อมรอบ</p>`;
+  if(errs.length)html+=`<div class="warn">ข้ามบรรทัดที่อ่านไม่ได้: ${errs.join(', ')}</div>`;
+  out.innerHTML=html;LOCAL=saved;PENDING={...T,zone:lz,rmse,n:rows.length,model,points:$('lIn').value,pset:$('pset').value,custom:$('pset').value==='custom'?params():null};
+  $('useFit').classList.remove('hidden');
+};
+function showLocal(){
+  const el=$('localOn');
+  if(LOCAL){el.innerHTML=`<span class="okc">กำลังใช้ค่าปรับแก้เฉพาะพื้นที่</span> ${LOCAL.name?'"'+esc(LOCAL.name)+'" ':''}จากหมุดร่วม ${LOCAL.n} หมุด โซน ${LOCAL.zone} (${LOCAL.model==='h4'?'Helmert':'Affine'}, RMSE ${f3(LOCAL.rmse)} ม.)`;el.classList.remove('hidden');$('dropFit').classList.remove('hidden');}
+  else{el.classList.add('hidden');$('dropFit').classList.add('hidden');}
+}
+$('useFit').onclick=()=>{if(PENDING){LOCAL=PENDING;showLocal();$('useFit').textContent='ใช้อยู่';setTimeout(()=>$('useFit').textContent='ใช้ค่าปรับแก้นี้',2000);}};
+$('dropFit').onclick=()=>{LOCAL=null;showLocal();};
+
+// ---- CSV file download (ใช้ได้เมื่อเปิดไฟล์ในเบราว์เซอร์โดยตรงหรือวางบนเว็บเซิร์ฟเวอร์) ----
+$('dlBatch').onclick=()=>{
+  if(!$('bOut').value)$('goBatch').click();
+  const blob=new Blob(['\ufeff'+$('bOut').value],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`coord_${toWGS?'IND75_to_WGS84':'WGS84_to_IND75'}.csv`;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+};
+// ---- Built-in regression test ----
+const REF={"utm":[{"p":"rtsd","dir":"fwd","zin":48,"zout":48,"E":190000,"N":1395000,"rE":189583.3954,"rN":1395311.427},{"p":"rtsd","dir":"rev","zin":48,"zout":48,"E":190000,"N":1395000,"rE":190416.6002,"rN":1394688.577},{"p":"rtsd","dir":"fwd","zin":48,"zout":47,"E":190000,"N":1395000,"rE":841514.5942,"rN":1395667.1397},{"p":"rtsd","dir":"rev","zin":48,"zout":47,"E":190000,"N":1395000,"rE":842270.6434,"rN":1395062.3358},{"p":"rtsd","dir":"fwd","zin":48,"zout":48,"E":240000,"N":1600000,"rE":239584.0342,"rN":1600312.8372},{"p":"rtsd","dir":"rev","zin":48,"zout":48,"E":240000,"N":1600000,"rE":240415.9617,"rN":1599687.1662},{"p":"rtsd","dir":"fwd","zin":48,"zout":47,"E":240000,"N":1600000,"rE":886500.3782,"rN":1601963.3119},{"p":"rtsd","dir":"rev","zin":48,"zout":47,"E":240000,"N":1600000,"rE":887257.4337,"rN":1601357.9435},{"p":"rtsd","dir":"fwd","zin":47,"zout":47,"E":824000,"N":1396000,"rE":823667.6442,"rN":1396302.8836},{"p":"rtsd","dir":"rev","zin":47,"zout":47,"E":824000,"N":1396000,"rE":824332.3531,"rN":1395697.1172},{"p":"rtsd","dir":"fwd","zin":47,"zout":48,"E":824000,"N":1396000,"rE":171757.5696,"rN":1396355.243},{"p":"rtsd","dir":"rev","zin":47,"zout":48,"E":824000,"N":1396000,"rE":172499.6539,"rN":1395733.3627},{"p":"rtsd","dir":"fwd","zin":47,"zout":47,"E":660000,"N":1520000,"rE":659667.2795,"rN":1520302.8731},{"p":"rtsd","dir":"rev","zin":47,"zout":47,"E":660000,"N":1520000,"rE":660332.719,"rN":1519697.1275},{"p":"rtsd","dir":"fwd","zin":47,"zout":48,"E":660000,"N":1520000,"rE":10551.7666,"rN":1524412.0424},{"p":"rtsd","dir":"rev","zin":47,"zout":48,"E":660000,"N":1520000,"rE":11295.3546,"rN":1523787.434},{"p":"rtsd","dir":"fwd","zin":47,"zout":47,"E":400000,"N":700000,"rE":399666.5424,"rN":700300.1779},{"p":"rtsd","dir":"rev","zin":47,"zout":47,"E":400000,"N":700000,"rE":400333.4545,"rN":699699.8251},{"p":"rtsd","dir":"fwd","zin":47,"zout":48,"E":400000,"N":700000,"rE":-265753.4657,"rN":705324.0883},{"p":"rtsd","dir":"rev","zin":47,"zout":48,"E":400000,"N":700000,"rE":-264998.1913,"rN":704711.5536},{"p":"rtsd","dir":"fwd","zin":47,"zout":47,"E":500000,"N":2200000,"rE":499667.0959,"rN":2200302.6769},{"p":"rtsd","dir":"rev","zin":47,"zout":47,"E":500000,"N":2200000,"rE":500332.9051,"rN":2199697.3225},{"p":"rtsd","dir":"fwd","zin":47,"zout":48,"E":500000,"N":2200000,"rE":-129254.3707,"rN":2211551.6761},{"p":"rtsd","dir":"rev","zin":47,"zout":48,"E":500000,"N":2200000,"rE":-128514.0683,"rN":2210919.0326},{"p":"e1304","dir":"fwd","zin":48,"zout":48,"E":190000,"N":1395000,"rE":189583.0214,"rN":1395311.1453},{"p":"e1304","dir":"rev","zin":48,"zout":48,"E":190000,"N":1395000,"rE":190416.9709,"rN":1394688.8607},{"p":"e1304","dir":"fwd","zin":48,"zout":47,"E":190000,"N":1395000,"rE":841514.2267,"rN":1395666.8495},{"p":"e1304","dir":"rev","zin":48,"zout":47,"E":190000,"N":1395000,"rE":842271.0077,"rN":1395062.628},{"p":"e1304","dir":"fwd","zin":48,"zout":48,"E":240000,"N":1600000,"rE":239583.8581,"rN":1600313.3706},{"p":"e1304","dir":"rev","zin":48,"zout":48,"E":240000,"N":1600000,"rE":240416.1348,"rN":1599686.6348},{"p":"e1304","dir":"fwd","zin":48,"zout":47,"E":240000,"N":1600000,"rE":886500.188,"rN":1601963.841},{"p":"e1304","dir":"rev","zin":48,"zout":47,"E":240000,"N":1600000,"rE":887257.6208,"rN":1601357.4163},{"p":"e1304","dir":"fwd","zin":47,"zout":47,"E":824000,"N":1396000,"rE":823667.2063,"rN":1396302.5959},{"p":"e1304","dir":"rev","zin":47,"zout":47,"E":824000,"N":1396000,"rE":824332.7882,"rN":1395697.4069},{"p":"e1304","dir":"fwd","zin":47,"zout":48,"E":824000,"N":1396000,"rE":171757.1252,"rN":1396354.9654},{"p":"e1304","dir":"rev","zin":47,"zout":48,"E":824000,"N":1396000,"rE":172500.0955,"rN":1395733.6424},{"p":"e1304","dir":"fwd","zin":47,"zout":47,"E":660000,"N":1520000,"rE":659666.195,"rN":1520303.0776},{"p":"e1304","dir":"rev","zin":47,"zout":47,"E":660000,"N":1520000,"rE":660333.8008,"rN":1519696.9249},{"p":"e1304","dir":"fwd","zin":47,"zout":48,"E":660000,"N":1520000,"rE":10550.6846,"rN":1524412.2745},{"p":"e1304","dir":"rev","zin":47,"zout":48,"E":660000,"N":1520000,"rE":11296.4339,"rN":1523787.2039},{"p":"e1304","dir":"fwd","zin":47,"zout":47,"E":400000,"N":700000,"rE":399664.4361,"rN":700297.1371},{"p":"e1304","dir":"rev","zin":47,"zout":47,"E":400000,"N":700000,"rE":400335.5581,"rN":699702.8681},{"p":"e1304","dir":"fwd","zin":47,"zout":48,"E":400000,"N":700000,"rE":-265755.6225,"rN":705321.0506},{"p":"e1304","dir":"rev","zin":47,"zout":48,"E":400000,"N":700000,"rE":-264996.0372,"rN":704714.5935},{"p":"e1304","dir":"fwd","zin":47,"zout":47,"E":500000,"N":2200000,"rE":499665.3809,"rN":2200305.5706},{"p":"e1304","dir":"rev","zin":47,"zout":47,"E":500000,"N":2200000,"rE":500334.6175,"rN":2199694.4305},{"p":"e1304","dir":"fwd","zin":47,"zout":48,"E":500000,"N":2200000,"rE":-129255.989,"rN":2211554.6437},{"p":"e1304","dir":"rev","zin":47,"zout":48,"E":500000,"N":2200000,"rE":-128512.4525,"rN":2210916.0669}],"mgrs":[{"lat":12.6065,"lon":102.143,"m":"48P SU 89585 95310"},{"lat":13.75,"lon":100.5,"m":"47P PR 62176 20582"},{"lat":18.79,"lon":98.98,"m":"47Q MA 97892 77591"},{"lat":7.0,"lon":100.47,"m":"47N PH 62380 74002"},{"lat":15.23,"lon":104.85,"m":"48P VB 83891 83770"},{"lat":6.5,"lon":101.8,"m":"47N RH 09701 19333"},{"lat":16.0,"lon":102.0001,"m":"48Q SC 78910 71253"},{"lat":20.4,"lon":100.1,"m":"47Q PC 14777 56130"}]};
+$('goTest').onclick=()=>{
+  const P={rtsd:PSETS[0].p,e1304:PSETS[1].p};let pass=0,fail=[],mx=0;
+  REF.utm.forEach(t=>{const r=convert(t.E,t.N,0,t.zin,t.zout,P[t.p],t.dir==='fwd');
+    const d=Math.max(Math.abs(r.E-t.rE),Math.abs(r.N-t.rN));mx=Math.max(mx,d);
+    if(d<=0.001)pass++;else fail.push(`${t.p} ${t.dir} ${t.zin}→${t.zout} (${f3(t.E)}, ${f3(t.N)}) ต่าง ${d.toFixed(4)} ม.`);});
+  let mp=0;REF.mgrs.forEach(t=>{const m=mgrs(t.lat,t.lon,ELL.wgs84,5);if(m===t.m)mp++;else fail.push(`MGRS ${t.lat}, ${t.lon}: ได้ ${m} ควรเป็น ${t.m}`);});
+  const ok=!fail.length;
+  $('testOut').innerHTML=`<p class="${ok?'okc':'bad'}" style="font-weight:600;margin-top:12px">${ok?'ผ่านทั้งหมด':'พบรายการไม่ผ่าน'}: UTM ${pass}/${REF.utm.length}, MGRS ${mp}/${REF.mgrs.length}</p>
+    <p class="note">ผลต่างสูงสุดของ UTM ${(mx*1000).toFixed(6)} มม.</p>${fail.length?'<div class="warn">'+fail.join('<br>')+'</div>':''}`;
+};
+
+// ---- Calibration profiles: localStorage + JSON files ----
+const PK='utmconv.profiles.v1', AK='utmconv.autoload.v1';
+const store={
+  ok:(()=>{try{localStorage.setItem('__t','1');localStorage.removeItem('__t');return true;}catch(e){return false;}})(),
+  get(){try{return JSON.parse(localStorage.getItem(PK)||'[]');}catch(e){return [];}},
+  set(v){try{localStorage.setItem(PK,JSON.stringify(v));return true;}catch(e){return false;}},
+  auto(v){try{if(v===undefined)return localStorage.getItem(AK);if(v===null)localStorage.removeItem(AK);else localStorage.setItem(AK,v);}catch(e){return null;}}
+};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pfMsg(t,bad){$('pfMsg').innerHTML=t?`<div class="${bad?'warn':'note okc'}">${t}</div>`:'';}
+function currentProfile(){
+  if(!PENDING)return null;
+  const name=$('pfName').value.trim(); if(!name)return null;
+  const R=PENDING;
+  return {format:'utmconv-calibration',version:1,name,saved:new Date().toISOString(),
+    zone:R.zone,model:R.model,pset:R.pset,custom:R.custom,points:R.points,
+    result:{a:R.a,b:R.b,c:R.c,d:R.d,x0:R.x0,y0:R.y0,x1:R.x1,y1:R.y1,rmse:R.rmse,n:R.n}};
+}
+function validProfile(p){
+  return p&&p.format==='utmconv-calibration'&&typeof p.name==='string'&&p.name&&[47,48].includes(+p.zone)&&
+    ['h4','a6'].includes(p.model)&&typeof p.points==='string'&&PSETS.some(x=>x.id===p.pset)&&p.result&&
+    ['a','b','c','d','x0','y0','x1','y1'].every(k=>isFinite(p.result[k]));
+}
+function applyProfile(p){
+  if(!validProfile(p)){pfMsg('ไฟล์หรือรายการนี้ไม่ใช่ค่าปรับแก้ที่เครื่องมือนี้อ่านได้',true);return false;}
+  $('pset').value=p.pset;
+  if(p.pset==='custom'&&p.custom){const c=p.custom;[['ctx','tx'],['cty','ty'],['ctz','tz'],['crx','rx'],['cry','ry'],['crz','rz'],['cs','s']].forEach(([id,k])=>$(id).value=c[k]);$('cconv').value=c.conv||'pv';}
+  onPset();
+  $('lz').value=String(p.zone);$('lm').value=p.model;$('lIn').value=p.points;$('pfName').value=p.name;
+  $('goFit').click();
+  if(!PENDING){pfMsg('คำนวณจากหมุดที่บันทึกไว้ไม่สำเร็จ',true);return false;}
+  const R=p.result,probe=[[R.x0+5000,R.y0+5000],[R.x0-5000,R.y0-5000]];
+  let dmax=0;probe.forEach(([x,y])=>{
+    const A=[R.x1+R.a*(x-R.x0)+R.b*(y-R.y0),R.y1+R.c*(x-R.x0)+R.d*(y-R.y0)];
+    const B=[PENDING.x1+PENDING.a*(x-PENDING.x0)+PENDING.b*(y-PENDING.y0),PENDING.y1+PENDING.c*(x-PENDING.x0)+PENDING.d*(y-PENDING.y0)];
+    dmax=Math.max(dmax,Math.hypot(A[0]-B[0],A[1]-B[1]));});
+  LOCAL={...PENDING,name:p.name};showLocal();
+  pfMsg(dmax<=0.001?`ใช้ค่าปรับแก้ "${esc(p.name)}" แล้ว คำนวณซ้ำจากหมุดตรงกับค่าที่บันทึก`:
+    `ใช้ค่าปรับแก้ "${esc(p.name)}" แล้ว แต่ผลคำนวณซ้ำต่างจากค่าที่บันทึก ${dmax.toFixed(4)} ม. ระบบใช้ค่าที่คำนวณใหม่จากหมุด`,dmax>0.001);
+  return true;
+}
+function renderProfiles(){
+  if(!store.ok){$('pfList').innerHTML='<div class="note">เบราว์เซอร์นี้ไม่อนุญาตให้บันทึกในเครื่อง ใช้ปุ่มบันทึกเป็นไฟล์แทน</div>';$('pfSave').disabled=true;$('pfAuto').disabled=true;return;}
+  const L=store.get(),auto=store.auto();
+  if(!L.length){$('pfList').innerHTML='<p class="note">ยังไม่มีค่าปรับแก้ที่บันทึกไว้ คำนวณค่าปรับแก้ด้านบน ตั้งชื่อพื้นที่ แล้วกดบันทึก</p>';return;}
+  $('pfList').innerHTML='<table><thead><tr><th>พื้นที่</th><th>โซน</th><th>แบบ</th><th>หมุด</th><th>RMSE (ม.)</th><th>บันทึกเมื่อ</th><th></th></tr></thead><tbody>'+
+    L.map((p,i)=>`<tr><td>${esc(p.name)}${auto===p.name?' <span class="okc">(อัตโนมัติ)</span>':''}</td><td>${p.zone}</td><td>${p.model==='h4'?'Helmert':'Affine'}</td><td>${p.result.n}</td><td>${f3(p.result.rmse)}</td><td>${new Date(p.saved).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'})}</td>
+    <td><button class="mini" data-use="${i}">ใช้</button><button class="mini" data-exp="${i}">ไฟล์</button><button class="mini del" data-del="${i}">ลบ</button></td></tr>`).join('')+'</tbody></table>';
+  $('pfList').querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{const p=store.get()[+b.dataset.use];if(applyProfile(p)&&$('pfAuto').checked){store.auto(p.name);renderProfiles();}});
+  $('pfList').querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>downloadProfile(store.get()[+b.dataset.exp]));
+  $('pfList').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const L=store.get(),p=L[+b.dataset.del];
+    if(!confirm(`ลบค่าปรับแก้ "${p.name}" ออกจากเครื่องนี้?`))return;
+    L.splice(+b.dataset.del,1);store.set(L);if(store.auto()===p.name)store.auto(null);if(LOCAL&&LOCAL.name===p.name){LOCAL=null;showLocal();}
+    pfMsg(`ลบ "${esc(p.name)}" แล้ว`);renderProfiles();});
+}
+function downloadProfile(p){
+  const blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`calib_${p.name.replace(/[\\/:*?"<>|\s]+/g,'_')}.json`;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+function needProfile(){
+  if(!PENDING){pfMsg('ยังไม่มีค่าปรับแก้ กดคำนวณค่าปรับแก้ก่อน',true);return null;}
+  if(!$('pfName').value.trim()){pfMsg('ตั้งชื่อพื้นที่ก่อนบันทึก',true);$('pfName').focus();return null;}
+  return currentProfile();
+}
+$('pfSave').onclick=()=>{
+  const p=needProfile();if(!p)return;
+  const L=store.get(),i=L.findIndex(x=>x.name===p.name);
+  if(i>=0&&!confirm(`มี "${p.name}" อยู่แล้ว ต้องการบันทึกทับหรือไม่?`))return;
+  if(i>=0)L[i]=p;else L.push(p);
+  if(!store.set(L)){pfMsg('บันทึกในเครื่องไม่สำเร็จ ใช้ปุ่มบันทึกเป็นไฟล์แทน',true);return;}
+  LOCAL={...PENDING,name:p.name};showLocal();
+  if($('pfAuto').checked)store.auto(p.name);
+  pfMsg(`บันทึกและใช้ "${esc(p.name)}" แล้ว`);renderProfiles();
+};
+$('pfExport').onclick=()=>{const p=needProfile();if(p){downloadProfile(p);pfMsg(`บันทึกไฟล์ "${esc(p.name)}" แล้ว`);}};
+$('pfImportBtn').onclick=()=>$('pfImport').click();
+$('pfImport').onchange=async e=>{
+  const files=[...e.target.files];e.target.value='';let added=0,bad=[],last=null;
+  for(const f of files){
+    try{let d=JSON.parse(await f.text());(Array.isArray(d)?d:[d]).forEach(p=>{
+      if(!validProfile(p)){bad.push(f.name);return;}
+      last=p;if(store.ok){const L=store.get(),i=L.findIndex(x=>x.name===p.name);if(i>=0)L[i]=p;else L.push(p);store.set(L);}added++;});}
+    catch(err){bad.push(f.name);}
+  }
+  if(last)applyProfile(last);
+  renderProfiles();
+  if(bad.length)pfMsg(`เปิดได้ ${added} รายการ อ่านไม่ได้: ${bad.map(esc).join(', ')}`,true);
+};
+$('pfAuto').onchange=()=>{
+  if($('pfAuto').checked){if(LOCAL&&LOCAL.name){store.auto(LOCAL.name);pfMsg(`จะเปิดใช้ "${esc(LOCAL.name)}" อัตโนมัติ`);}else pfMsg('เลือก "ใช้" ค่าปรับแก้ที่บันทึกไว้หนึ่งรายการ เพื่อตั้งเป็นค่าอัตโนมัติ');}
+  else{store.auto(null);pfMsg('ยกเลิกการเปิดใช้อัตโนมัติแล้ว');}
+  renderProfiles();
+};
+const _drop=$('dropFit').onclick;$('dropFit').onclick=()=>{_drop();pfMsg('');};
+
+// ---- Aerial imagery map (Leaflet + Esri World Imagery) ----
+let MAP=null,MLAY=null,LASTPTS=null;
+let LCTRL=null;
+const BK='utmconv.basemap.v1';
+function initMap(){
+  if(MAP)return true;
+  if(typeof L==='undefined'){$('mapNote').innerHTML='<span class="bad">โหลดแผนที่ไม่ได้ ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อแสดงภาพถ่ายทางอากาศ</span> (การแปลงพิกัดยังทำงานได้ตามปกติ)';return false;}
+  MAP=L.map('map',{zoomControl:true,maxZoom:21}).setView([12.61,102.10],10);
+  const RP={referrerPolicy:'strict-origin-when-cross-origin'};
+  const ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const base={
+    'ภาพถ่ายทางอากาศ (Esri)':L.tileLayer(ESRI+'World_Imagery/MapServer/tile/{z}/{y}/{x}',{...RP,maxZoom:21,maxNativeZoom:19,
+      attribution:'Imagery © Esri, Maxar, Earthstar Geographics, and the GIS User Community'}),
+    'ภาพดาวเทียม Sentinel-2 ปี 2024 (EOX)':L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg',{...RP,maxZoom:21,maxNativeZoom:14,
+      attribution:'<a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless - https://s2maps.eu</a> by <a href="https://eox.at" target="_blank" rel="noopener">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2024)'}),
+    'แผนที่ภูมิประเทศ มีเส้นชั้นความสูง (OpenTopoMap)':L.tileLayer('https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png',{...RP,maxZoom:21,maxNativeZoom:17,
+      attribution:'Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, SRTM | Style © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA) | Tiles <a href="https://openmaps.fr" target="_blank" rel="noopener">openmaps.fr</a> (<a href="https://openmaps.fr/donate" target="_blank" rel="noopener">donate</a>)'}),
+    'แผนที่ภูมิประเทศ (Esri)':L.tileLayer(ESRI+'World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{...RP,maxZoom:21,maxNativeZoom:19,
+      attribution:'Tiles © Esri, HERE, Garmin, USGS, NGA, and the GIS User Community'})
+  };
+  const hs=L.tileLayer(ESRI+'Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}',{...RP,maxZoom:21,maxNativeZoom:16,className:'hillshade',
+      attribution:'Hillshade © Esri, USGS, NGA, NASA, CGIAR, and the GIS User Community'});
+  const lbl=L.tileLayer(ESRI+'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{...RP,maxZoom:21,maxNativeZoom:19,attribution:'Labels © Esri'});
+  L.control.scale({metric:true,imperial:false,position:'topright'}).addTo(MAP);
+  const names=Object.keys(base);
+  $('bmSel').innerHTML=names.map(n=>`<option>${n}</option>`).join('');
+  let cur=null,ok=0,bad=0,warned=false;
+  const watch=l=>{l.on('tileload',()=>{ok++;if(warned){warned=false;$('mapWarn').classList.add('hidden');}});
+    l.on('tileerror',()=>{bad++;if(!ok&&bad>=4&&!warned){warned=true;
+      $('mapWarn').innerHTML='<b>ภาพแผนที่ฐานโหลดไม่ขึ้น</b> ตำแหน่งจุดและระยะยังถูกต้อง สาเหตุที่พบบ่อยคือเปิดไฟล์ผ่านหน้าดูตัวอย่างในแอป (เช่นในแอป Claude, LINE หรือตัวจัดการไฟล์) ซึ่งบล็อกการโหลดภาพจากภายนอก ให้ดาวน์โหลดไฟล์แล้วเปิดด้วย Chrome หรือ Edge หรือวางไฟล์บนเว็บเซิร์ฟเวอร์ของสำนักงาน ถ้าเปิดในเบราว์เซอร์แล้วยังไม่ขึ้น ลองเลือกแผนที่ฐานชุดอื่นด้านบน';
+      $('mapWarn').classList.remove('hidden');}});};
+  function setBase(n){
+    if(!base[n])n=names[0];
+    if(cur)MAP.removeLayer(cur);
+    ok=0;bad=0;cur=base[n];cur.addTo(MAP);cur.bringToBack();$('bmSel').value=n;
+    try{localStorage.setItem(BK,n);}catch(_){}
+  }
+  names.forEach(n=>watch(base[n]));
+  $('bmSel').onchange=()=>setBase($('bmSel').value);
+  $('bmHs').onchange=()=>{$('bmHs').checked?hs.addTo(MAP):MAP.removeLayer(hs);};
+  $('bmLbl').onchange=()=>{$('bmLbl').checked?lbl.addTo(MAP):MAP.removeLayer(lbl);};
+  let pick=null;try{pick=localStorage.getItem(BK);}catch(e){}
+  setBase(pick);
+  hs.addTo(MAP);
+  MLAY=L.layerGroup().addTo(MAP);
+  MAP.on('dragstart',()=>{if(GPS.watch!=null)$('gpsFollow').checked=false;});
+  return true;
+}
+const pIcon=c=>L.divIcon({className:'',html:`<div class="pmark" style="background:${c}"></div>`,iconSize:[16,16],iconAnchor:[8,8]});
+function plotPoints(pts){
+  LASTPTS=pts; if(!initMap())return;
+  if(typeof GPS!=='undefined'&&GPS.last)setTimeout(gpsRender,0);
+  MLAY.clearLayers();
+  const so=$('mShowO').checked,sc=$('mShowC').checked,sl=$('mShowL').checked,sn=$('mShowN').checked;
+  const oN=srcN(),cN=dstN(),b=[];
+  const gl=p=>`<br><a href="https://www.google.com/maps/search/?api=1&query=${p.lat.toFixed(8)},${p.lon.toFixed(8)}" target="_blank" rel="noopener">เปิดใน Google Maps</a>`;
+  const pop=(nm,lab,p,wgs)=>`<b>${esc(nm)}</b><br>${lab} โซน ${p.z}N<br>E ${f3(p.E)}<br>N ${f3(p.N)}<br>${f8(p.lat)}, ${f8(p.lon)}${wgs?gl(p):''}`;
+  let dsum=0;
+  pts.forEach(p=>{
+    const A=[p.o.lat,p.o.lon],B=[p.c.lat,p.c.lon];
+    const d=geodInv(A[0],A[1],B[0],B[1]);dsum+=d;
+    if(sl&&so&&sc){L.polyline([A,B],{color:'#fff',weight:2,dashArray:'6 5',opacity:.9}).addTo(MLAY)
+      .bindTooltip(`${d.toFixed(2)} ม.`,{permanent:pts.length<=30,direction:'center',className:'plabel'});}
+    if(so){const m=L.marker(A,{icon:pIcon('#E8A33D')}).addTo(MLAY).bindPopup(pop(p.name,`ค่าเดิม ${oN}`,p.o,oN==='WGS84'));
+      if(sn&&!sc)m.bindTooltip(esc(p.name),{permanent:true,direction:'right',offset:[8,0],className:'plabel'});b.push(A);}
+    if(sc){const m=L.marker(B,{icon:pIcon('#2B8FD6')}).addTo(MLAY).bindPopup(pop(p.name,`แปลงแล้ว ${cN}`,p.c,cN==='WGS84'));
+      if(sn)m.bindTooltip(esc(p.name),{permanent:true,direction:'right',offset:[8,0],className:'plabel'});b.push(B);}
+  });
+  if(b.length){ if(b.length===1)MAP.setView(b[0],18); else MAP.fitBounds(L.latLngBounds(b).pad(0.25),{maxZoom:19}); }
+  $('mapNote').textContent=pts.length?`แสดง ${pts.length} จุด ระยะบนพื้นเฉลี่ย ${(dsum/pts.length).toFixed(2)} ม. (วัดตามทรงรี WGS84) (ค่าเดิม = ${oN}, แปลงแล้ว = ${cN}) แตะจุดเพื่อดูค่าพิกัด`:'';
+  setTimeout(()=>MAP.invalidateSize(),50);
+}
+['mShowO','mShowC','mShowL','mShowN'].forEach(id=>$(id).onchange=()=>{if(LASTPTS)plotPoints(LASTPTS);});
+
+// ---- Device location (Geolocation API, live tracking) ----
+let GPS={watch:null,marker:null,circle:null,layer:null,last:null,first:true};
+function initBearing(la1,lo1,la2,lo2){const p1=la1*D2R,p2=la2*D2R,dl=(lo2-lo1)*D2R;
+  return (Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))/D2R+360)%360;}
+function dev2ind(lat,lon,zone){
+  const p=params();
+  if(LOCAL){const u0=geo2utm(lat,lon,LOCAL.zone,ELL.wgs84);const [e1,n1]=applyLocal(u0.E,u0.N,true);return convert(e1,n1,0,LOCAL.zone,zone,p,false);}
+  const u=geo2utm(lat,lon,zone,ELL.wgs84);return convert(u.E,u.N,0,zone,zone,p,false);
+}
+function targetWGS(){ // จุดที่เป็นตำแหน่งจริง (ค่า WGS84) ของผลแปลงล่าสุด
+  if(!LASTPTS||!LASTPTS.length)return null;const p=LASTPTS[0];
+  const w=srcN()==='WGS84'?p.o:p.c;return {name:p.name,lat:w.lat,lon:w.lon};
+}
+function gpsRender(){
+  const g=GPS.last;if(!g)return;
+  const z=zoneOf(g.lon),u=geo2utm(g.lat,g.lon,z,ELL.wgs84),iz=+$('zin').value;
+  const ind=dev2ind(g.lat,g.lon,iz);
+  const [la,lo]=fmtLL(g.lat,g.lon),dg=+$('mgp').value;
+  const t=targetWGS();let tgt='';
+  if(t){const d=geodInv(g.lat,g.lon,t.lat,t.lon),b=initBearing(g.lat,g.lon,t.lat,t.lon);
+    tgt=`<br><b>ถึง${esc(t.name)}</b> ${d<1000?d.toFixed(1)+' ม.':(d/1000).toFixed(3)+' กม.'} ทิศ ${b.toFixed(0)}° จากทิศเหนือจริง`;}
+  $('gpsInfo').innerHTML=`<div class="gpsbox"><b>ตำแหน่งอุปกรณ์</b> ความคลาดเคลื่อนประมาณ ±${g.acc.toFixed(0)} ม.${g.spd!=null&&g.spd>0.5?` · ความเร็ว ${(g.spd*3.6).toFixed(1)} กม./ชม.`:''}<br>
+    WGS84 ${z}N: E ${f3(u.E)} N ${f3(u.N)}<br>
+    Indian 1975 ${ind.zone}N: E ${f3(ind.E)} N ${f3(ind.N)}${LOCAL?' (ใช้ค่าปรับแก้เฉพาะพื้นที่)':''}<br>
+    ${la}, ${lo}<br>MGRS ${mgrs(g.lat,g.lon,ELL.wgs84,dg)}${tgt}<br>
+    <span class="note">อัปเดต ${new Date(g.t).toLocaleTimeString('th-TH')}</span>
+    <div class="row" style="margin-top:6px"><button class="btn ghost" id="gpsUse">ใช้ตำแหน่งนี้เป็นค่าที่ป้อน</button></div></div>`;
+  $('gpsUse').onclick=()=>{
+    const src=toWGS?ind:(()=>{const q=geo2utm(g.lat,g.lon,iz,ELL.wgs84);return {E:q.E,N:q.N};})();
+    if(geoMode()){const gg=toWGS?dev2ind(g.lat,g.lon,iz):null;
+      if(toWGS){const q=utm2geo(ind.E,ind.N,ind.zone,ELL.everest);$('sLat').value=q.lat.toFixed(8);$('sLon').value=q.lon.toFixed(8);}
+      else{$('sLat').value=g.lat.toFixed(8);$('sLon').value=g.lon.toFixed(8);} $('sH').value='0';}
+    else{$('sE').value=f3(src.E);$('sN').value=f3(src.N);$('sH').value='0';}
+    document.querySelector('[data-tab="t1"]').click();$('goOne').click();
+    $('t1').scrollIntoView({behavior:'smooth',block:'start'});
+  };
+}
+function gpsUpdate(pos){
+  const c=pos.coords;GPS.last={lat:c.latitude,lon:c.longitude,acc:c.accuracy,spd:c.speed,t:pos.timestamp};
+  if(!initMap())return;
+  const ll=[c.latitude,c.longitude];
+  if(!GPS.layer)GPS.layer=L.layerGroup().addTo(MAP);
+  if(!GPS.marker){
+    GPS.circle=L.circle(ll,{radius:c.accuracy,color:'#1FB85A',weight:1,fillColor:'#1FB85A',fillOpacity:.12,interactive:false}).addTo(GPS.layer);
+    GPS.marker=L.marker(ll,{icon:L.divIcon({className:'',html:'<div class="gps pulse"></div>',iconSize:[18,18],iconAnchor:[9,9]}),zIndexOffset:1000}).addTo(GPS.layer)
+      .bindTooltip('ตำแหน่งของฉัน',{direction:'top',offset:[0,-10],className:'plabel'});
+  }else{GPS.marker.setLatLng(ll);GPS.circle.setLatLng(ll).setRadius(c.accuracy);}
+  if(GPS.first){GPS.first=false;MAP.setView(ll,Math.max(MAP.getZoom(),18));}
+  else if($('gpsFollow').checked)MAP.panTo(ll,{animate:true});
+  $('gpsInfo').classList.remove('hidden');gpsRender();
+}
+function gpsError(e){
+  const m={1:gpsNeedHttps()?HTTPS_MSG:'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง ตรวจ 2 จุด: (1) การตั้งค่าเครื่อง > ตำแหน่ง > เปิดอยู่ และอนุญาตให้เบราว์เซอร์ใช้ตำแหน่ง (2) ในเบราว์เซอร์ แตะไอคอนหน้าที่อยู่เว็บ > สิทธิ์ > ตำแหน่ง > อนุญาต แล้วโหลดหน้าใหม่',
+           2:'หาตำแหน่งไม่ได้ ตรวจว่าเปิด GPS/บริการตำแหน่งของเครื่องแล้ว และลองออกไปที่โล่ง',
+           3:'รอสัญญาณตำแหน่งนานเกินไป กำลังลองต่อ...'}[e.code]||('ใช้ตำแหน่งไม่ได้: '+e.message);
+  $('gpsInfo').classList.remove('hidden');
+  $('gpsInfo').innerHTML=`<div class="warn">${m}</div>`;
+  if(e.code===1)gpsStop();
+}
+function gpsNeedHttps(){
+  const p=location.protocol;
+  return !window.isSecureContext||p==='file:'||p==='content:';
+}
+const HTTPS_MSG=`<b>เบราว์เซอร์ไม่ให้ใช้ตำแหน่งกับหน้าที่เปิดจากไฟล์ในเครื่อง</b> (หน้านี้เปิดจาก ${location.protocol.replace(':','')}) การแปลงพิกัดและแผนที่ยังใช้ได้ตามปกติ
+  <br>ถ้าต้องการใช้ตำแหน่งอุปกรณ์ ให้เปิดหน้านี้ผ่านเว็บไซต์ที่เป็น <b>https://</b> เช่น วางไฟล์บนเว็บเซิร์ฟเวอร์ของสำนักงานที่เปิด https หรือบริการเว็บฟรีอย่าง GitHub Pages / Netlify (ตั้งชื่อไฟล์เป็น index.html)`;
+function gpsStart(){
+  if(gpsNeedHttps()){$('gpsInfo').classList.remove('hidden');$('gpsInfo').innerHTML=`<div class="warn">${HTTPS_MSG}</div>`;return;}
+  if(!('geolocation' in navigator)){$('gpsInfo').classList.remove('hidden');$('gpsInfo').innerHTML='<div class="warn">อุปกรณ์หรือเบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง</div>';return;}
+  if(!initMap())return;
+  GPS.first=true;
+  $('gpsBtn').textContent='⏹ หยุดแสดงตำแหน่ง';$('gpsInfo').classList.remove('hidden');
+  $('gpsInfo').innerHTML='<p class="note">กำลังหาตำแหน่ง... (ครั้งแรกเบราว์เซอร์จะขออนุญาต)</p>';
+  GPS.watch=navigator.geolocation.watchPosition(gpsUpdate,gpsError,{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+}
+function gpsStop(){
+  if(GPS.watch!=null)navigator.geolocation.clearWatch(GPS.watch);
+  GPS.watch=null;if(GPS.layer)GPS.layer.clearLayers();GPS.marker=GPS.circle=null;
+  $('gpsBtn').textContent='📍 แสดงตำแหน่งของฉัน';
+  if(!$('gpsInfo').querySelector('.warn'))$('gpsInfo').classList.add('hidden');
+}
+$('gpsBtn').onclick=()=>GPS.watch==null?gpsStart():gpsStop();
+$('gpsFollow').onchange=()=>{if($('gpsFollow').checked&&GPS.last&&MAP)MAP.panTo([GPS.last.lat,GPS.last.lon]);};
+
+// ---- CSV import ----
+let CSV=null;
+function decodeText(buf){
+  const u8=new Uint8Array(buf);
+  try{return {text:new TextDecoder('utf-8',{fatal:true}).decode(u8).replace(/^\uFEFF/,''),enc:'UTF-8'};}
+  catch(e){try{return {text:new TextDecoder('windows-874').decode(u8),enc:'ANSI ภาษาไทย (TIS-620/Windows-874)'};}
+    catch(_){return {text:new TextDecoder('utf-8').decode(u8),enc:'UTF-8'};}}
+}
+function sniffDelim(lines){
+  const c=[',',';','\t','|'];let best=',',bs=-1;
+  c.forEach(d=>{const n=lines.slice(0,10).map(l=>splitCSV(l,d).length);const mn=Math.min(...n);
+    const score=mn>1&&n.every(x=>x===n[0])?mn*10:mn; if(score>bs){bs=score;best=d;}});
+  const ws=lines.slice(0,10).every(l=>l.trim().split(/\s+/).length>=2);
+  return bs<=1&&ws?'ws':best;
+}
+function splitCSV(line,d){
+  if(d==='ws')return line.trim().split(/\s+/);
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){const ch=line[i];
+    if(q){if(ch==='"'){if(line[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=ch;}
+    else if(ch==='"')q=true; else if(ch===d){out.push(cur);cur='';} else cur+=ch;}
+  out.push(cur);return out.map(x=>x.trim());
+}
+const isNum=v=>v!==undefined&&v!==''&&isFinite(num(v));
+const colLetter=i=>{let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;};
+const CMK='utmconv.csvmap.v1';
+function guessCols(head,rows,hasHead,ncol){
+  const col=re=>hasHead?head.findIndex(h=>re.test(String(h).trim())):-1;
+  if(geoMode()){
+    let LA=col(/^(lat|latitude|ละติจูด|lat_?dd|y)(\s*\(.*\))?$/i),LO=col(/^(lon|long|lng|longitude|ลองจิจูด|lon_?dd|x)(\s*\(.*\))?$/i),
+        H2=col(/^(h|z|elev|elevation|height|alt|ความสูง|ระดับ)(\s*\(.*\))?$/i),P2=col(/^(name|id|pt|point|no|code|ชื่อ|ชื่อหมุด|หมุด|หมุดที่|ลำดับ|เลขหมุด)$/i);
+    if(LA>=0&&LO>=0&&LA!==LO)return {P:P2,E:LA,N:LO,H:H2,src:'หัวตาราง'};
+    try{const m=JSON.parse(localStorage.getItem(CMK+'.geo')||'null');if(m&&m.ncol===ncol&&m.E<ncol&&m.N<ncol)return {P:m.P,E:m.E,N:m.N,H:m.H,src:'ค่าที่ใช้ครั้งก่อน'};}catch(e){}
+    return ncol>=3?{P:0,E:1,N:2,H:-1,src:'รูปแบบมาตรฐาน A=ชื่อหมุด B=ละติจูด C=ลองจิจูด'}:{P:-1,E:0,N:1,H:-1,src:'A=ละติจูด B=ลองจิจูด'};
+  }
+  let E=col(/^(e|x|east|easting|e_?utm|utm_?e|ตะวันออก|ค่า\s*e|พิกัด\s*e)(\s*\(.*\))?$/i),
+      N=col(/^(n|y|north|northing|n_?utm|utm_?n|เหนือ|ค่า\s*n|พิกัด\s*n)(\s*\(.*\))?$/i),
+      H=col(/^(h|z|elev|elevation|height|alt|ความสูง|ระดับ)(\s*\(.*\))?$/i),
+      P=col(/^(name|id|pt|point|no|code|ชื่อ|ชื่อหมุด|หมุด|หมุดที่|ลำดับ|เลขหมุด)$/i);
+  if(E>=0&&N>=0&&E!==N)return {P,E,N,H,src:'หัวตาราง'};
+  // ค่าที่ผู้ใช้เลือกไว้ครั้งก่อน (จำนวนคอลัมน์เท่ากัน)
+  try{const m=JSON.parse(localStorage.getItem(CMK)||'null');if(m&&m.ncol===ncol&&m.E<ncol&&m.N<ncol)return {P:m.P,E:m.E,N:m.N,H:m.H,src:'ค่าที่ใช้ครั้งก่อน'};}catch(e){}
+  // ค่าเริ่มต้นมาตรฐาน: A = ชื่อหมุด, B = E, C = N, D = h (ถ้ามี)
+  if(ncol>=3){const hD=ncol>=4&&rows.slice(0,20).every(r=>r[3]===undefined||r[3]===''||isNum(r[3]))&&rows.some(r=>isNum(r[3]));
+    return {P:0,E:1,N:2,H:hD?3:-1,src:'รูปแบบมาตรฐาน A=ชื่อหมุด B=E C=N'};}
+  return {P:-1,E:0,N:1,H:-1,src:'A=E B=N'};
+}
+function csvRender(){
+  const {lines,delim,enc,fname,hasHead}=CSV;
+  const all=lines.map(l=>splitCSV(l,delim)),head=hasHead?all[0]:all[0].map((_,i)=>`คอลัมน์ ${i+1}`),rows=hasHead?all.slice(1):all;
+  CSV.rows=rows;const ncol=Math.max(...all.slice(0,50).map(r=>r.length));
+  if(!CSV.map)CSV.map=guessCols(head,rows,hasHead,ncol);
+  const opt=(k,allowNone)=>`<select id="csv${k}">${allowNone?'<option value="-1">— ไม่มี —</option>':''}${[...Array(ncol).keys()].map(i=>`<option value="${i}" ${CSV.map[k]===i?'selected':''}>${colLetter(i)}: ${esc(hasHead?(head[i]??''):'คอลัมน์ '+colLetter(i))}</option>`).join('')}</select>`;
+  const prev=rows.slice(0,5).map(r=>`<tr>${[...Array(ncol).keys()].map(i=>`<td>${esc(r[i]??'')}</td>`).join('')}</tr>`).join('');
+  $('csvMap').innerHTML=`<div class="gpsbox" style="border-left-color:var(--water)">
+    <b>${esc(fname)}</b> · ${rows.length} แถว · ${enc} · ตัวคั่น ${delim==='\t'?'แท็บ':delim==='ws'?'ช่องว่าง':`"${delim}"`}
+    <label class="chk"><input type="checkbox" id="csvHead" ${hasHead?'checked':''}> แถวแรกเป็นหัวตาราง</label>
+    <p class="note" style="margin:6px 0 0">จับคู่คอลัมน์จาก: ${CSV.map?esc(CSV.map.src||'ผู้ใช้เลือก'):''}</p>
+    <div class="row" style="margin-top:6px"><button class="btn ghost" id="csvStd">${geoMode()?'ใช้ A = ชื่อหมุด, B = ละติจูด, C = ลองจิจูด':'ใช้ A = ชื่อหมุด, B = E, C = N'}</button></div>
+    <div class="grid" style="margin-top:8px">
+      <div><label for="csvP">ชื่อหมุด</label>${opt('P',true)}</div>
+      <div><label for="csvE">${geoMode()?'ละติจูด':'Easting (E)'}</label>${opt('E',false)}</div>
+      <div><label for="csvN">${geoMode()?'ลองจิจูด':'Northing (N)'}</label>${opt('N',false)}</div>
+      <div><label for="csvH">ความสูง h</label>${opt('H',true)}</div>
+    </div>
+    <div class="tbl"><table><thead><tr>${[...Array(ncol).keys()].map(i=>`<th>${colLetter(i)}${hasHead?'<br>'+esc(head[i]??''):''}</th>`).join('')}</tr></thead><tbody>${prev}</tbody></table></div>
+    <div id="csvChk"></div>
+    <div class="row"><button class="btn" id="csvGo">นำเข้าและแปลง</button><button class="btn ghost" id="csvCancel">ยกเลิก</button></div></div>`;
+  $('csvMap').classList.remove('hidden');
+  ['P','E','N','H'].forEach(k=>$('csv'+k).onchange=()=>{CSV.map[k]=+$('csv'+k).value;CSV.map.src='ผู้ใช้เลือก';csvCheck();});
+  $('csvStd').onclick=()=>{CSV.map={P:0,E:1,N:2,H:-1,src:geoMode()?'รูปแบบมาตรฐาน A=ชื่อหมุด B=ละติจูด C=ลองจิจูด':'รูปแบบมาตรฐาน A=ชื่อหมุด B=E C=N'};$('csvMap').innerHTML='';csvRender();};
+  CSV.ncol=ncol;
+  $('csvHead').onchange=()=>{CSV.map=null;CSV.hasHead=$('csvHead').checked;$('csvMap').innerHTML='';csvRender();};
+  $('csvGo').onclick=csvApply;$('csvCancel').onclick=()=>{$('csvMap').classList.add('hidden');CSV=null;};
+  csvCheck();
+}
+function csvCheck(){
+  const {E,N}=CSV.map,r=CSV.rows,msgs=[];
+  if(geoMode()){
+    if(E===N)msgs.push('คอลัมน์ละติจูดและลองจิจูดต้องไม่ใช่คอลัมน์เดียวกัน');
+    const g=r.filter(x=>isFinite(parseAng(x[E],true))&&isFinite(parseAng(x[N],false)));
+    const bad=r.length-g.length; if(bad)msgs.push(`${bad} แถวที่อ่านค่าละติจูด/ลองจิจูดไม่ได้ จะถูกข้าม`);
+    const out=g.filter(x=>geoWarn(parseAng(x[E],true),parseAng(x[N],false))).length;
+    if(out)msgs.push(`${out} แถวมีค่าอยู่นอกขอบเขตประเทศไทย อาจสลับคอลัมน์ละติจูดกับลองจิจูด`);
+    $('csvChk').innerHTML=msgs.length?`<div class="warn">${msgs.join('<br>')}</div>`:`<p class="note okc">พร้อมนำเข้า ${g.length} หมุด</p>`;
+    $('csvGo').disabled=E===N||!g.length;return;
+  }
+  if(E===N)msgs.push('คอลัมน์ E และ N ต้องไม่ใช่คอลัมน์เดียวกัน');
+  const bad=r.filter(x=>!isNum(x[E])||!isNum(x[N])).length;
+  if(bad)msgs.push(`${bad} แถวที่ E หรือ N ไม่ใช่ตัวเลข จะถูกข้าม`);
+  const good=r.filter(x=>isNum(x[E])&&isNum(x[N]));
+  const swap=good.filter(x=>num(x[E])>num(x[N])).length;
+  if(good.length&&swap>good.length/2)msgs.push('ค่า E ส่วนใหญ่มากกว่า N ซึ่งผิดปกติสำหรับประเทศไทย อาจเลือกคอลัมน์ E/N สลับกัน');
+  const out=good.filter(x=>num(x[E])<100000||num(x[E])>900000||num(x[N])<500000||num(x[N])>2400000).length;
+  if(out)msgs.push(`${out} แถวมีค่าอยู่นอกช่วงปกติของประเทศไทย`);
+  $('csvChk').innerHTML=msgs.length?`<div class="warn">${msgs.join('<br>')}</div>`:`<p class="note okc">พร้อมนำเข้า ${good.length} หมุด</p>`;
+  $('csvGo').disabled=E===N;
+}
+function csvApply(){
+  const {P,E,N,H}=CSV.map;let i=0;
+  try{localStorage.setItem(CMK+(geoMode()?'.geo':''),JSON.stringify({P,E,N,H,ncol:CSV.ncol}));}catch(e){}
+  if(geoMode()){
+    const ls=CSV.rows.filter(x=>isFinite(parseAng(x[E],true))&&isFinite(parseAng(x[N],false))).map(x=>{i++;
+      const nm=(P>=0&&x[P]?String(x[P]):`P${i}`).replace(/[,\t;]/g,' ').trim()||`P${i}`;
+      return `${nm},${parseAng(x[E],true).toFixed(8)},${parseAng(x[N],false).toFixed(8)}`;});
+    $('bIn').value=ls.join('\n');$('csvMap').classList.add('hidden');CSV=null;
+    $('goBatch').click();$('bTbl').scrollIntoView({behavior:'smooth',block:'start'});return;
+  }
+  const lines=CSV.rows.filter(x=>isNum(x[E])&&isNum(x[N])).map(x=>{i++;
+    const name=(P>=0&&x[P]?String(x[P]):`P${i}`).replace(/[,\t;]/g,' ').trim()||`P${i}`;
+    const h=H>=0&&isNum(x[H])?','+num(x[H]):'';
+    return `${name},${num(x[E]).toFixed(4)},${num(x[N]).toFixed(4)}${h}`;});
+  $('bIn').value=lines.join('\n');$('csvMap').classList.add('hidden');CSV=null;
+  $('goBatch').click();$('bTbl').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('csvBtn').onclick=()=>$('csvFile').click();
+$('csvFile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  if(f.size>20*1024*1024){$('csvMap').classList.remove('hidden');$('csvMap').innerHTML='<div class="warn">ไฟล์ใหญ่เกิน 20 MB</div>';return;}
+  const {text,enc}=decodeText(await f.arrayBuffer());
+  const lines=text.split(/\r\n|\n|\r/).filter(l=>l.trim()&&!l.trim().startsWith('#'));
+  if(!lines.length){$('csvMap').classList.remove('hidden');$('csvMap').innerHTML='<div class="warn">ไฟล์ว่างเปล่า</div>';return;}
+  const delim=sniffDelim(lines),first=splitCSV(lines[0],delim);
+  const hasHead=first.filter(isNum).length<2;
+  $('csvMap').innerHTML='';
+  CSV={lines,delim,enc,fname:f.name,hasHead,map:null};csvRender();
+};
+onPset();renderProfiles();
+(()=>{const a=store.ok&&store.auto();if(a){const p=store.get().find(x=>x.name===a);$('pfAuto').checked=true;if(p)applyProfile(p);}})();
+$('goOne').click();
+</script></body></html>
