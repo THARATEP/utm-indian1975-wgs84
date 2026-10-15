@@ -2,7 +2,7 @@
    - ไฟล์หลักของแอป: ใช้ของในแคชก่อน แล้วอัปเดตเบื้องหลัง
    - ไลบรารีและฟอนต์จาก CDN: เก็บแคชไว้ตอนใช้งานครั้งแรก
    - ภาพแผนที่ (tiles): ไม่เก็บแคช ปล่อยให้เบราว์เซอร์จัดการเอง */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = `shell-${VERSION}`;
 const LIBS = `libs-${VERSION}`;
 const SHELL_FILES = [
@@ -11,6 +11,7 @@ const SHELL_FILES = [
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/maskable-192.png',
   './icons/maskable-512.png',
   './icons/apple-touch-icon.png'
 ];
